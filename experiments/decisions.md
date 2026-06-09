@@ -56,6 +56,35 @@ Ogni scelta non banale va registrata qui (regola CLAUDE.md).
   A/B/C bilanciati), eval=148, test=540 (386 CNN/DailyMail + 6 handwritten +
   148 sintetici per confronto), probe=302.
 
+## 2026-06-09 — Exp 0: baseline prompt engineering (gating)
+
+- **Run**: Qwen2.5-0.5B base (nessun token speciale), 50 esempi MCQ da
+  `test.jsonl`, seed 42. Risultati (`results/exp0_results.json`):
+  - `summary_fact_retrieval` = **0.742** (fatti conservati nel riassunto)
+  - `mcq_from_summary` = **0.82** (41/50)
+  - `mcq_full_context_upper_bound` = **0.74** (37/50)
+  - chance level = 0.25
+- **Decisione**: si **procede** con il training (Exp 1+), ma la baseline è
+  forte e fissa l'asticella: i token addestrati devono battere chiaramente
+  0.82 di MCQ accuracy e 0.74 di fact retrieval, a parità di protocollo.
+  Il verdetto gating definitivo si dà al confronto con Exp 2 (come da
+  guidance dello script): se i token non superano questi numeri, STOP.
+- **Osservazione notevole**: `mcq_from_summary` (0.82) > full context (0.74).
+  Il riassunto agisce da denoising del contesto per il modello 0.5B — la
+  compressione *aiuta* anche senza training. Questo non invalida il progetto
+  (che misura il *meccanismo*: probing, persistenza alla distanza, causalità —
+  cose che il prompt baseline non può offrire), ma rende la barra
+  comportamentale più alta del previsto.
+- **Caveat**: i riassunti generati dal base model contengono artefatti
+  (continuazioni spurie tipo "You are an AI assistant…" dopo i bullet);
+  il fact retrieval medio 0.742 ha varianza alta (min 0.0 su alcuni esempi).
+  Da tenere a mente nel confronto: anche i token addestrati verranno valutati
+  con le stesse metriche rumorose.
+- **Fix incluso nel run**: `run_exp0.py` ora carica l'intero file prima di
+  filtrare gli esempi MCQ — in `test.jsonl` solo 154/540 righe hanno le
+  opzioni e non sono distribuite uniformemente; il vecchio limite
+  `max_samples * 3` ne scartava la maggior parte.
+
 ## Template per nuove decisioni
 
 ```

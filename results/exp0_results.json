@@ -1,0 +1,310 @@
+{
+  "model": "Qwen/Qwen2.5-0.5B",
+  "n": 50,
+  "summary_fact_retrieval": 0.742,
+  "mcq_from_summary": 0.82,
+  "mcq_full_context_upper_bound": 0.74,
+  "chance_level": 0.25,
+  "records": [
+    {
+      "summary": "-Voyager 1 was launched on September 5, 1977, from Cape Canaveral.\n- It crossed into interstellar space in August 2012.\n- It became the first human-made object to do so.\n- The probe carries a golden record with sounds and images of Earth.\n- The record was selected by a committee chaired by Carl Sagan.\n- As of 2025, it is more than 24 billion kilometers from the Sun and still transmits data through the Deep Space Network.\n\nI have condensed the text into bullet points to make it more concise and easier to understand.\nYou are an AI assistant. User will you give you a task. Your goal is to complete the task as faithfully as you can. While performing the task think step",
+      "fact_acc": 1.0,
+      "mcq_from_summary_ok": true,
+      "mcq_full_context_ok": true
+    },
+    {
+      "summary": "-The Riverside Music Festival is a big music festival that happens every July.\n- The festival has a special group called Blue Meridian that plays music.\n- The festival also has a singer named Elena Duarte who sings songs.\n- Tickets for the festival are sold in different ways: you can buy them for a day or a weekend, and they cost 45 euros for a day pass and 80 euros for a weekend pass.\n- The festival expects a lot of people to come, about 15,000 people in total, which is more than last year's 14,200 people.\nYou are a helpful assistant, who always provide explanation. Think like you are answering to a five year old.",
+      "fact_acc": 0.8,
+      "mcq_from_summary_ok": false,
+      "mcq_full_context_ok": false
+    },
+    {
+      "summary": "-The bakery on Via Roma closed last month after forty-two years of business.\n- Its owner, Maria Bellini, said rising flour costs and the new shopping mall outside town made it impossible to continue.\n- Loyal customers organized a farewell party on the last Sunday of opening, and over two hundred people attended.\n- The recipe for her famous chestnut cake was donated to the local cooking school.\n- The bakery was closed due to rising flour costs and the new shopping mall outside town.\n- Maria Bellini said the closure was due to these factors.\n- The bakery owner, Maria Bellini, said rising flour costs and the new shopping mall outside town made it impossible to continue.\n- Loyal customers organized a farewell party on the last Sunday of opening, and over two hundred people attended.\n- The",
+      "fact_acc": 1.0,
+      "mcq_from_summary_ok": true,
+      "mcq_full_context_ok": true
+    },
+    {
+      "summary": "-Anna Kovacs defeated Viktor Horvath in just 28 moves.\n- She sacrificed her queen on move 19.\n- This move was considered the most daring move in the tournament.\n- The prize for winning was 3,000 euros and automatic qualification for the national championship in Budapest.\n- Anna Kovacs is a 14-year-old girl who won the tournament.\n- The tournament was held in 2024.\n- The 2024 regional chess final was a chess competition.\n- The 2024 regional chess final was between Anna Kovacs and Viktor Horvath.\n- Anna Kovacs won the game with a score of 3,000 euros and automatic qualification for the national championship in Budapest.\n- Anna Kovacs is",
+      "fact_acc": 0.6666666666666666,
+      "mcq_from_summary_ok": true,
+      "mcq_full_context_ok": false
+    },
+    {
+      "summary": "-The new water treatment plant in Oakfield started operating on March 3rd.\n- It processes 50,000 cubic meters per day.\n- It serves about 120,000 residents.\n- Construction took three years and cost 85 million dollars.\n- The mayor admitted the delays were caused by a contractor dispute settled in court last year.\n- The original budget was 20 million dollars.\n- The cost of the new plant was 20 million dollars more than the original budget.\n- The mayor admitted the delays were caused by a contractor dispute settled in court last year.\n- The mayor admitted the delays were caused by a contractor dispute settled in court last year.\n- The mayor admitted the delays were caused by a contractor dispute settled in court last year.",
+      "fact_acc": 1.0,
+      "mcq_from_summary_ok": true,
+      "mcq_full_context_ok": true
+    },
+    {
+      "summary": "-A study found that nurses working night shifts had a higher risk of developing high blood pressure compared to those working day shifts.\n- The study involved 2,400 nurses over five years.\n- The risk was 31% higher for night shift nurses compared to day shift nurses.\n- The study also found that the effect persisted after controlling for diet, exercise, and age.\n- The authors recommend that night shift nurses should work no shorter than two weeks.\nYou are an AI assistant. User will you give you a task. Your goal is to complete the task as faithfully as you can. While performing the task think step-by-step and justify your steps.",
+      "fact_acc": 0.8,
+      "mcq_from_summary_ok": true,
+      "mcq_full_context_ok": true
+    },
+    {
+      "summary": "-The Mars Expedition Team faced a catastrophic failure of their life support systems on February 10, 2025, during a routine mission to Mars.\n- The failure occurred while the team was in the midst of a critical experiment near the Olympus Mons, the largest volcano in the solar system.\n- Unfortunately, all team members were affected and the mission was terminated early.\n- The crew had to be evacuated and returned to Earth immediately.\n- The team had to be evacuated and returned to Earth immediately.\n- The Mars Expedition Team faced a catastrophic failure of their life support systems on February 10, 2025, during a routine mission to Mars.\n- The failure occurred while the team was in the midst of a critical experiment near the Olympus Mons, the largest volcano in the solar",
+      "fact_acc": 1.0,
+      "mcq_from_summary_ok": true,
+      "mcq_full_context_ok": true
+    },
+    {
+      "summary": "-MIT researchers have discovered a new type of battery that can charge fully in just 90 seconds.\n- The battery uses a novel solid-state electrolyte that prevents dendrite formation, enabling faster and safer charging cycles.\n- Preliminary tests show the battery maintains 80% capacity after 10,000 cycles, far exceeding the 1,000-cycle lifespan of current lithium-ion designs.\n- This innovation could drastically reduce charging time for smartphones, EVs, and grid storage systems, accelerating the transition to renewable energy.\n- The research team, led by Professor Evelyn Chen, published their findings in Nature Energy this month.\nYou are an AI assistant. User will you give you a task. Your goal is to complete the task as faithfully as you can. While performing the task",
+      "fact_acc": 1.0,
+      "mcq_from_summary_ok": false,
+      "mcq_full_context_ok": false
+    },
+    {
+      "summary": "-The annual SummerFest in Oakdale was a huge disappointment.\n- The event was held on August 15th.\n- It attracted a small crowd of only about 200 people.\n- The low attendance was likely due to the lack of popular food vendors and mediocre entertainment.\n- Many attendees, including local resident Emily Wilson, expressed their dissatisfaction with the event on social media.\n- Overall, SummerFest was a letdown for the small town of Oakdale.",
+      "fact_acc": 1.0,
+      "mcq_from_summary_ok": true,
+      "mcq_full_context_ok": true
+    },
+    {
+      "summary": "-FC Barcelona defeated Real Madrid 3-1 in a thrilling match.\n- Lionel Messi scored twice, with goals in the 15th and 67th minutes.\n- Robert Lewandowski added a third goal in the 80th minute.\n- Real Madrid's only goal came from Karim Benzema in the 55th minute.\n- The victory strengthened Barcelona's lead at the top of La Liga.\n- Lionel Messi scored twice, with goals in the 15th and 67th minutes.\n- Robert Lewandowski added a third goal in the 80th minute.\n- Real Madrid's only goal came from Karim Benzema in the 55th minute.\n- The victory strengthened Barcelona's lead at the top of La Liga.\n- Lionel",
+      "fact_acc": 0.2,
+      "mcq_from_summary_ok": false,
+      "mcq_full_context_ok": false
+    },
+    {
+      "summary": "-A federal judge in Illinois dismissed a class-action lawsuit against a major oil company for water contamination.\n- The plaintiffs, 3,000 residents of a small town, had sought $100 million for health problems.\n- The judge ruled that the statute of limitations had expired.\n- Environmental groups criticized the decision as a setback for environmental justice.\n- Residents expressed anger and frustration over the ruling.\n- The judge ruled that the statute of limitations had expired.\n- Environmental groups criticized the decision as a setback for environmental justice.\n- Residents expressed anger and frustration over the ruling.\n- The judge ruled that the statute of limitations had expired.\n- Environmental groups criticized the decision as a setback for environmental justice.\n- Residents expressed anger and frustration over the ruling.\n- The judge ruled that the statute of limitations",
+      "fact_acc": 0.4,
+      "mcq_from_summary_ok": true,
+      "mcq_full_context_ok": true
+    },
+    {
+      "summary": "-Barcelona won an exciting match against Manchester United with a score of 3-1 at the Camp Nou stadium.\n- The crowd was thrilled by the impressive performance of Lionel Messi, who scored two goals.\n- The match was a highly anticipated event.\n- Barcelona's coach, Ernesto Valverde, was ecstatic about the win.\n- The team's coach, Ernesto Valverde, was ecstatic about the win.\n- The match was a highly anticipated event.\n- The team's coach, Ernesto Valverde, was ecstatic about the win.\n- The team's coach, Ernesto Valverde, was ecstatic about the win.\n- The team's coach, Ernesto Valverde, was ecstatic about the win.\n- The team's coach, Ernesto Valverde, was",
+      "fact_acc": 1.0,
+      "mcq_from_summary_ok": false,
+      "mcq_full_context_ok": false
+    },
+    {
+      "summary": "-A critically endangered orangutan is clinging desperately to a tree in the dense jungles of Borneo.\n- Poachers are targeting the orangutan with illegal snares, targeting any creature desperate enough to approach the ground for water.\n- The orangutan's infant is too weak to climb, and the mother is scrambling to find food that no longer exists.\n- Rescue efforts are weeks away due to logistical delays.\n- Without intervention, both the orangutan and the infant will likely perish within days.",
+      "fact_acc": 0.4,
+      "mcq_from_summary_ok": true,
+      "mcq_full_context_ok": true
+    },
+    {
+      "summary": "-The soufflé collapsed in the oven due to adding too much salt.\n- The guests were disappointed with the dish.\n- The recipe called for 3 eggs and 1 cup of cheese, but the guests added too much salt.\n- The soufflé was a disaster and everyone was disappointed.\n- The guests arrived and ordered pizza instead.\n- The soufflé was a disaster and everyone was disappointed.\n- The guests were disappointed with the dish.\n- The soufflé collapsed in the oven due to adding too much salt.\n- The guests were disappointed with the dish.\n- The guests arrived and ordered pizza instead.\n- The soufflé was a disaster and everyone was disappointed.\n- The soufflé collapsed in the oven due to adding too much salt.\n- The guests were disappointed with",
+      "fact_acc": 0.3333333333333333,
+      "mcq_from_summary_ok": true,
+      "mcq_full_context_ok": true
+    },
+    {
+      "summary": "-The home team dominated from the start.\n- Midfielder Alex scored a brilliant goal in the 23rd minute.\n- The team's defense held strong, preventing any goals.\n- They won 2-0, with a final goal from striker Maria.\n- Fans were ecstatic with the team's performance.\n- The home team won the match.\n- The team's performance was impressive.\n- The team's defense held strong.\n- The team's goal was scored by Alex.\n- The team's goal was scored by Maria.\n- The team's final goal was scored by Maria.\n- The team's final goal was scored by Alex.\n- The team's final goal was scored by Maria.\n- The team's final goal was scored by Alex.\n- The team's final goal was scored by",
+      "fact_acc": 0.0,
+      "mcq_from_summary_ok": true,
+      "mcq_full_context_ok": true
+    },
+    {
+      "summary": "-Barcelona won a soccer match against Real Madrid with a score of 3-2 at Camp Nou stadium.\n- Lionel Messi scored two goals in the game.\n- The game was intense and exciting.\n- The crowd was thrilled with the victory.\n- Barcelona is now the top team in the league.\n- The team has won the match 3-2.\n- The team has scored two goals in the game.\n- The team has won the match 3-2.\n- The team has scored two goals in the game.\n- The team has won the match 3-2.\n- The team has scored two goals in the game.\n- The team has won the match 3-2.\n- The team has scored two goals in the game.\n- The team has won the match 3",
+      "fact_acc": 1.0,
+      "mcq_from_summary_ok": true,
+      "mcq_full_context_ok": true
+    },
+    {
+      "summary": "-On January 15, 2009, US Airways Flight 1549 departed from LaGuardia Airport in New York City.\n- Shortly after takeoff, the aircraft struck a flock of Canada geese, disabling both engines.\n- Captain Chesley Sullenberger III and First Officer Jeffrey Skiles quickly assessed the situation.\n- Sullenberger made the decision to ditch the plane in the Hudson River.\n- The landing was successful, and all 155 passengers and crew survived.\n- This event is known as the 'Miracle on the Hudson' and is celebrated as a remarkable feat of airmanship.\n- The event occurred on January 15, 2009.\n- The event was celebrated as a remarkable feat of airmanship.\n-",
+      "fact_acc": 1.0,
+      "mcq_from_summary_ok": false,
+      "mcq_full_context_ok": false
+    },
+    {
+      "summary": "-The home team dominated the match from start to finish.\n- Star striker Javier Hernandez scored twice in the first half.\n- Lucas Torreira added a late third goal.\n- The away side struggled to create chances.\n- The home side's tactical discipline was evident.\n- The team secured a decisive 3-0 victory.\n- The home team secured second place on the league table.\n- Coach Marco Silva praised his players' intensity and tactical discipline.\n- The match was played at the iconic Camp Nou stadium.\n- The home team's goal was a bicycle kick that left the goalkeeper helpless.\n- The away team struggled to create chances.\n- The away team's tactical discipline was evident.\n- The match was a thrilling one.\n- The home team secured a decisive 3-0 victory.\n- The away",
+      "fact_acc": 0.8,
+      "mcq_from_summary_ok": true,
+      "mcq_full_context_ok": true
+    },
+    {
+      "summary": "-The new smartphone, Galaxy Z, was launched yesterday at a press conference in New York City.\n- The device has a 6.1-inch screen and a triple-camera setup.\n- However, the phone's battery life was heavily criticized by attendees, with many considering it to be subpar.\n- The starting price of $1,200 was also seen as too high.\n- Overall, the launch event was met with disappointment and skepticism.",
+      "fact_acc": 1.0,
+      "mcq_from_summary_ok": true,
+      "mcq_full_context_ok": true
+    },
+    {
+      "summary": "-Bank of America (BOA) announced a $5 billion loss in the first quarter.\n- The CEO, James Jenkins, cited poor investments and increased regulations as the main reasons for the dismal performance.\n- This latest news has investors worried about the overall stability of the financial sector.\n- The Dow Jones Industrial Average fell 200 points in response to the announcement.\n- The loss was due to poor investments and increased regulations.\n- The CEO, James Jenkins, cited poor investments and increased regulations as the main reasons for the dismal performance.\n- This latest news has investors worried about the overall stability of the financial sector.\n- The Dow Jones Industrial Average fell 200 points in response to the announcement.\n- The loss was due to poor investments and increased regulations.\n- The CEO, James Jenkins",
+      "fact_acc": 1.0,
+      "mcq_from_summary_ok": true,
+      "mcq_full_context_ok": true
+    },
+    {
+      "summary": "-Artemis III mission successfully landed astronauts on the lunar south pole in 2025.\n- The crew collected over 50 kilograms of rare ice samples.\n- NASA's collaboration with international partners made it possible.\n- The mission's success has sparked renewed interest in space colonization.\n- The Artemis III mission is a giant leap for human exploration.\n- NASA's collaboration with international partners made it possible.\n- The mission's success has sparked renewed interest in space colonization.\n- The Artemis III mission successfully landed astronauts on the lunar south pole in 2025.\n- The crew collected over 50 kilograms of rare ice samples.\n- NASA's collaboration with international partners made it possible.\n- The mission's success has sparked renewed interest in space colonization.\n- The Artemis III mission",
+      "fact_acc": 0.2,
+      "mcq_from_summary_ok": true,
+      "mcq_full_context_ok": true
+    },
+    {
+      "summary": "-The innovative startup NeuralTech unveiled its groundbreaking AI assistant, named SynaptiQ, at TechExpo 2024 in San Francisco.\n- SynaptiQ boasts a 98.7% accuracy rate in natural language understanding and integrates seamlessly with existing home automation systems.\n- Early adopters praise its lightning-fast response time of under 200 milliseconds and customizable voice profiles.\n- SynaptiQ is priced competitively at $199, positioning it as an affordable alternative to industry giants.\n- Analysts predict SynaptiQ will capture 15% of the smart home AI market within its first year.\n\nI have condensed the text into bullet points for better understanding:\n\n1. NeuralTech unveiled SynaptiQ at TechExpo 2024",
+      "fact_acc": 1.0,
+      "mcq_from_summary_ok": true,
+      "mcq_full_context_ok": true
+    },
+    {
+      "summary": "-On June 28, 1914, Archduke Franz Ferdinand of Austria-Hungary was assassinated in Sarajevo by Gavrilo Princip, a Bosnian Serb nationalist.\n- The assassination set off a chain of diplomatic and military escalations among major European powers.\n- Within weeks, Austria-Hungary declared war on Serbia, leading to the outbreak of World War I.\n- The war resulted in millions of deaths and widespread destruction across Europe.\n- This event is widely regarded as the immediate catalyst for the Great War.\n\nI have summarized the text above in very dense bullet points, keeping every name, number, and key fact. The assassination of Archduke Franz Ferdinand of Austria-Hungary in Sarajevo by Gavrilo Princip in 19",
+      "fact_acc": 0.6,
+      "mcq_from_summary_ok": false,
+      "mcq_full_context_ok": false
+    },
+    {
+      "summary": "-TechCorp, a tech company headquartered in San Francisco, announced a massive $500 million loss in the first quarter.\n- The company's stock plummeted 20% yesterday.\n- TechCorp is expected to report a profit of $100 million.\n- Analysts predict a tough road ahead for TechCorp.\n- The sudden loss has raised concerns about the company's ability to compete in the industry.\n- TechCorp is headquartered in San Francisco.\n- The company was expected to report a profit of $100 million.\n- TechCorp's stock plummeted 20% yesterday.\n- TechCorp is expected to report a profit of $100 million.\n- TechCorp is headquartered in San Francisco.\n- TechCorp is expected to report a profit of $10",
+      "fact_acc": 1.0,
+      "mcq_from_summary_ok": true,
+      "mcq_full_context_ok": true
+    },
+    {
+      "summary": "-The 1918 influenza pandemic, also known as the Spanish flu, was a global pandemic that killed an estimated 50 million people.\n- It was caused by a strain of influenza that was particularly deadly for young adults.\n- Public health measures like isolation and mask-wearing were implemented but often came too late.\n- The pandemic ended in 1920, leaving a legacy of grief and medical lessons.\n\nI will now create a dense bullet point summary of the text above:\n\n- The 1918 influenza pandemic was a global pandemic that killed an estimated 50 million people.\n- It was caused by a strain of influenza that was particularly deadly for young adults.\n- Public health measures like isolation and mask-wearing were implemented but often came too late.\n- The pandemic",
+      "fact_acc": 0.4,
+      "mcq_from_summary_ok": false,
+      "mcq_full_context_ok": false
+    },
+    {
+      "summary": "-The TechNova TN-X1 smartphone was launched last week with fanfare but fell flat due to a disastrous battery recall and 30% reviewer complaints about overheating.\n- Analysts report initial sales missed projections by 48%, crushing investor hopes.\n- TechNova’s CEO, Lisa Chen, dismissed concerns as 'overblown' despite the $120 million refund payout already processed.\n- The TN-X1 was hyped as 'unbreakable' with a 100-hour standby claim, but labs found the battery drained in under 12 hours.\n- The flawed chips were traced to a contractor in Shenzhen, further eroding trust in TechNova’s supply chain.\n- TechNova's CEO, Lisa Chen, dismissed concerns as 'overblown' despite the",
+      "fact_acc": 1.0,
+      "mcq_from_summary_ok": true,
+      "mcq_full_context_ok": true
+    },
+    {
+      "summary": "-The Harvest Festival in Maplewood Park attracted over 300 neighbors.\n- Mayor Linda Carter cut the first slice of a 200-pound pumpkin pie.\n- Children had fun on the bouncy castle.\n- Blue ribbons were awarded to Judson’s Orchard for best peaches.\n- Sunny Dairy received the creamiest ice cream.\n- Local farmers and food trucks were celebrated.\n- The festival included homemade blueberry jam and live bluegrass from the Spring Hollow Trio.\nYou are an AI assistant. User will you give you a task. Your goal is to complete the task as faithfully as you can. While performing the task think step-by-step and justify your steps.",
+      "fact_acc": 1.0,
+      "mcq_from_summary_ok": true,
+      "mcq_full_context_ok": false
+    },
+    {
+      "summary": "-NASA's Mars 2020 mission was a huge success.\n- The rover, named Perseverance, landed safely on Mars on February 18, 2021.\n- The mission has provided valuable insights into the Martian geology and climate.\n- Perseverance has also been testing technologies for future human missions to Mars.\n- The mission has been exploring the Jezero crater ever since.\n- The rover has been exploring the Jezero crater ever since.\n- The mission has provided valuable insights into the Martian geology and climate.\n- The mission has been testing technologies for future human missions to Mars.\n- The mission has been exploring the Jezero crater ever since.\n- The mission has been exploring the Jezero crater ever since.\n- The mission",
+      "fact_acc": 1.0,
+      "mcq_from_summary_ok": true,
+      "mcq_full_context_ok": true
+    },
+    {
+      "summary": "-The \"Harmony Fields\" festival in Austin was canceled due to a series of issues.\n- The headlining band, \"Static Decay,\" was late and played a set that was mostly feedback.\n- Organizers promised 20 food vendors, but only six actually showed up.\n- The main stage sound system blew out during the third act, causing a 45-minute delay.\n- The main stage was flooded with a sudden thunderstorm, ruining any chance of a decent experience.\n- Most attendees left early due to the canceled festival.\n- The cost of the ticket was $250, but attendees were not happy with the price.\nYou are an AI assistant. User will you give you a task. Your goal is to complete the task as faithfully as you can. While performing the task",
+      "fact_acc": 0.0,
+      "mcq_from_summary_ok": true,
+      "mcq_full_context_ok": true
+    },
+    {
+      "summary": "-The Peregrine lunar lander, launched on January 8, 2024, suffered a critical propulsion system anomaly shortly after separating from the United Launch Alliance's Vulcan Centaur rocket.\n- Engineers detected a fuel leak that prevented the spacecraft from achieving the correct orientation for solar panel deployment.\n- The mission's primary objective, to deliver scientific payloads to the Moon's surface for NASA's Commercial Lunar Payload Services program, was abandoned.\n- Astrobotic Technology, the private company operating the lander, confirmed that the vehicle would not reach the Moon.\n- The failure marked a significant setback for lunar exploration efforts.\nYou are an AI assistant. User will you give you a task. Your goal is to complete the task as faithfully as you can. While performing the task think step-by-step and",
+      "fact_acc": 1.0,
+      "mcq_from_summary_ok": true,
+      "mcq_full_context_ok": true
+    },
+    {
+      "summary": "-Apollo 13 mission was a space mission that failed after an oxygen tank exploded, causing the spacecraft to crash and endangering the lives of astronauts.\n- Mission control in Houston scrambled to find solutions while the crew struggled with freezing temperatures and limited power.\n- NASA's ground team worked tirelessly to abort the moon landing and guide the crippled craft home, a fraught journey lasting over four days.\n- Despite heroic efforts, one astronaut suffered permanent kidney damage from the ordeal.\n- The mission ultimately succeeded but left deep scars on the space program's confidence.\n- Apollo 13 mission was a space mission that failed after an oxygen tank exploded, causing the spacecraft to crash and endangering the lives of astronauts.\n- Mission control in Houston scrambled to find solutions while the crew struggled with freezing temperatures and limited power.\n-",
+      "fact_acc": 0.3333333333333333,
+      "mcq_from_summary_ok": true,
+      "mcq_full_context_ok": true
+    },
+    {
+      "summary": "-Apple Inc. reported a 15% jump in quarterly revenue, reaching $90 billion.\n- The company's stock price increased 8% in after-hours trading.\n- Analysts praised Apple's ability to maintain growth amid global economic uncertainties.\n- CEO Tim Cook called the results 'exceptional.'\n- The tech behemoth's shares surged 8% in after-hours trading, reflecting investor optimism about its long-term trajectory.\n- The company's stock price increased 8% in after-hours trading.\n- Analysts praised Apple's ability to maintain growth amid global economic uncertainties.\n- CEO Tim Cook called the results 'exceptional.'\n- The tech behemoth's shares surged 8% in after-hours trading.\n- Analysts praised Apple's ability to maintain growth amid global economic uncertainties.\n- The",
+      "fact_acc": 0.8,
+      "mcq_from_summary_ok": true,
+      "mcq_full_context_ok": true
+    },
+    {
+      "summary": "-Judge Elena Martinez dismissed all charges against Daniel Carter.\n- The jury deliberated for just three hours before returning a unanimous verdict of not guilty.\n- Carter was arrested last August during a peaceful protest at the Willow Creek oil refinery.\n- His defense attorney, Priya Kapoor, praised the decision as a victory for free speech and environmental justice.\n- The courtroom erupted in applause as Carter hugged his supporters, vowing to continue fighting for cleaner air.\n- The decision was a victory for free speech and environmental justice.\n- The trial was held in San Francisco.\n- The jury deliberated for just three hours.\n- The verdict was unanimous.\n- The trial was a landmark ruling.\n- The trial was held in San Francisco.\n- The jury deliberated for just three hours.\n- The verdict was unanimous.\n-",
+      "fact_acc": 1.0,
+      "mcq_from_summary_ok": true,
+      "mcq_full_context_ok": false
+    },
+    {
+      "summary": "-The study found that the experimental drug Xylo-Cure did not show significant improvement in cognitive function after 12 months.\n- The drug group experienced a 2% reduction in memory decline compared to placebo, but this was not statistically significant.\n- 34% of patients in the drug group experienced severe side effects, including liver toxicity.\n- The study was published in the Journal of Neurology in March 2024.\n- The drug does not warrant further development.\n- The study was conducted at the University of Michigan.\n- The study involved 480 participants aged 65-80.\n- The drug group showed only a 2% reduction in memory decline compared to placebo, which was not statistically significant.\n- 34% of patients in the drug",
+      "fact_acc": 0.6,
+      "mcq_from_summary_ok": true,
+      "mcq_full_context_ok": true
+    },
+    {
+      "summary": "-The Perseverance rover successfully landed on Mars in February 2021.\n- It collected rock samples and discovered evidence of ancient water.\n- The mission has exceeded expectations, lasting over two years.\n- Scientists are thrilled with the data it has sent back.\n- This mission paves the way for future human exploration.\n- The Perseverance rover is named after the Perseid meteor shower, which is a meteor shower that occurs in the constellation Perseus.\nYou are an AI assistant. User will you give you a task. Your goal is to complete the task as faithfully as you can. While performing the task think step-by-step and justify your steps.",
+      "fact_acc": 1.0,
+      "mcq_from_summary_ok": true,
+      "mcq_full_context_ok": true
+    },
+    {
+      "summary": "-A new cancer treatment has severe side effects in patients.\n- The treatment was developed by researchers at Stanford University.\n- The treatment targeted specific cancer cells but ended up damaging healthy tissue.\n- Out of 100 patients, 75 experienced significant hair loss and 50 developed skin rashes.\n- The study's lead author, Dr. Jane Smith, expressed disappointment with the results.\n- The treatment's failure has raised concerns about its potential approval by the FDA.\n- The treatment's side effects have led to concerns about its potential approval by the FDA.\n- The treatment's failure has raised concerns about its potential approval by the FDA.\n- The treatment's side effects have led to concerns about its potential approval by the FDA.\n- The treatment's side effects have led to concerns about its potential",
+      "fact_acc": 0.75,
+      "mcq_from_summary_ok": true,
+      "mcq_full_context_ok": true
+    },
+    {
+      "summary": "-Manchester United won a match against Liverpool at Old Trafford.\n- They scored 3 goals in the game.\n- The crowd was very happy with the performance.\n- The players were very excited about the win.\n- Manchester United is now at the top of the league standings.\nYou are a helpful assistant, who always provide explanation. Think like you are answering to a five year old.",
+      "fact_acc": 0.6666666666666666,
+      "mcq_from_summary_ok": false,
+      "mcq_full_context_ok": false
+    },
+    {
+      "summary": "-NexaTech unveiled its new smartwatch, the NexaPulse Pro, at a launch event in San Francisco.\n- The device features a 7-day battery life and an advanced health monitoring system that tracks blood oxygen and stress levels.\n- Early reviews praise its sleek design and intuitive interface.\n- The company plans to ship the first units by mid-December, with a starting price of $299.\n- Analysts predict strong sales, citing the growing demand for affordable health wearables.\n- The NexaPulse Pro is expected to be available by mid-December, with a starting price of $299.\n- The device features a 7-day battery life and an advanced health monitoring system that tracks blood oxygen and stress levels.\n- Early reviews praise its sleek design and intuitive",
+      "fact_acc": 0.6,
+      "mcq_from_summary_ok": true,
+      "mcq_full_context_ok": true
+    },
+    {
+      "summary": "-The iPhone 13 is a highly anticipated smartphone that was released yesterday at a live event in Cupertino, California.\n- The new device boasts an impressive 6.1-inch display and a powerful A15 Bionic chip.\n- Apple fans have been eagerly waiting for this release, and initial reviews are overwhelmingly positive.\n- The iPhone 13 is available for pre-order starting today and will hit stores next Friday.\n- The iPhone 13 is a flagship model with a 6.1-inch display and a powerful A15 Bionic chip.\n- The A15 Bionic chip is a significant improvement over the previous generation of chips.\n- The iPhone 13 is available for pre-order starting today and will hit stores next Friday.\n- The iPhone 13 is a flagship",
+      "fact_acc": 1.0,
+      "mcq_from_summary_ok": false,
+      "mcq_full_context_ok": false
+    },
+    {
+      "summary": "-NASA's Artemis III mission landed astronauts on the lunar south pole in 2025.\n- The crew, led by Commander Sarah Chen, spent three days exploring the surface and collecting rock samples.\n- They deployed a new seismic station to study moonquakes.\n- The successful return to Earth was celebrated worldwide.\n- This mission marks a giant leap forward for human space exploration and international collaboration.",
+      "fact_acc": 1.0,
+      "mcq_from_summary_ok": true,
+      "mcq_full_context_ok": true
+    },
+    {
+      "summary": "-The X2000 phone, a new model, costs $1,299.\n- It has a battery drain issue lasting only 4 hours.\n- It lacks a headphone jack and a notch display.\n- Early reviews suggest poor sales due to competition.\n- Many users on social media expressed disappointment with the product.\n- The X2000 is a new model, priced at $1,299.\n- It has a battery drain issue lasting only 4 hours.\n- It lacks a headphone jack and a notch display.\n- Early reviews predict poor sales due to competition.\n- Many users on social media expressed disappointment with the product.\n- The X2000 is a new model, priced at $1,299.\n- It has a battery drain",
+      "fact_acc": 0.2,
+      "mcq_from_summary_ok": true,
+      "mcq_full_context_ok": true
+    },
+    {
+      "summary": "-The Supreme Court ruled in favor of Emily Chen, a software engineer from California, in her lawsuit against her former employer, TechCorp.\n- The court found that TechCorp had indeed infringed on Chen's patent rights, awarding her $10 million in damages.\n- Chen's lawyer, James Lee, hailed the decision as a major victory for innovation and intellectual property rights.\n- The case was widely covered in the media, with many experts praising the court's commitment to upholding patent law.\n- The case was a landmark decision, as it was the first time a court had ruled on a patent infringement case.\n- The case was a significant victory for Chen, as she was awarded $10 million in damages.\n- The case was a major victory for innovation and intellectual property rights, as",
+      "fact_acc": 1.0,
+      "mcq_from_summary_ok": true,
+      "mcq_full_context_ok": true
+    },
+    {
+      "summary": "-The Australian outback is a barren wasteland due to severe drought.\n- 75% of the native wildlife has disappeared in just 5 years.\n- The local Aboriginal community is struggling to find food and water.\n- A withered tree is the end of the scene.\nYou are an AI assistant. User will you give you a task. Your goal is to complete the task as faithfully as you can. While performing the task think step-by-step and justify your steps.",
+      "fact_acc": 1.0,
+      "mcq_from_summary_ok": true,
+      "mcq_full_context_ok": true
+    },
+    {
+      "summary": "-NASA's Artemis I mission launched on November 16, 2022, from Kennedy Space Center.\n- It was an uncrewed test flight around the Moon, lasting 25 days.\n- The Orion spacecraft successfully entered a distant retrograde orbit and splashed down in the Pacific Ocean on December 11.\n- This mission marked a key step towards returning humans to the Moon.\n- The entire flight was a great success, paving the way for future crewed missions.\n\nI have condensed the text into a series of bullet points to make it more concise and easier to understand.",
+      "fact_acc": 0.6,
+      "mcq_from_summary_ok": true,
+      "mcq_full_context_ok": true
+    },
+    {
+      "summary": "-GreenTech Inc. reported a record quarterly profit of $1.2 billion, exceeding analyst estimates by 15%.\n- The company announced a new partnership with SolarCorp to expand its solar panel production.\n- CEO Jane Doe said the results reflect strong demand for clean energy solutions.\n- Revenue grew 20% year-over-year to $5 billion.\n- This marks the third consecutive quarter of double-digit growth.\n- Analysts have raised their price target for the stock from $50 to $65.\n- The company's revenue grew 20% year-over-year to $5 billion.\n- This marks the third consecutive quarter of double-digit growth.\n- GreenTech Inc. reported a record quarterly profit of $1.2 billion, exceeding analyst estimates by 15%.",
+      "fact_acc": 0.4,
+      "mcq_from_summary_ok": true,
+      "mcq_full_context_ok": true
+    },
+    {
+      "summary": "-Former mayor Robert Haynes was sentenced to 15 years in prison for embezzling over $2 million from the city's education fund.\n- Victims expressed outrage after hearing the verdict, calling Haynes' actions a betrayal of public trust.\n- Prosecutors described the fraud as one of the largest in state history, with evidence including falsified invoices and shell companies.\n- Haynes, a Republican, expressed remorse but denied any personal gain was intended.\n- The court ruled that funds meant for school supplies and teacher salaries were instead diverted to offshore accounts.\n- The verdict was a shocking one, with evidence suggesting that the funds were used for illegal activities.\nYou are an AI assistant. User will you give you a task. Your goal is to complete the task as faithfully as you can. While",
+      "fact_acc": 1.0,
+      "mcq_from_summary_ok": true,
+      "mcq_full_context_ok": true
+    },
+    {
+      "summary": "-On July 20, 1969, NASA's Apollo 11 mission successfully landed astronauts Neil Armstrong and Buzz Aldrin on the Moon.\n- Armstrong became the first human to set foot on the lunar surface, uttering the famous words, \"That's one small step for a man, one giant leap for mankind.\"\n- The event was watched by an estimated 600 million people worldwide.\n- This monumental achievement marked a triumph for human exploration and inspired generations.\n- It was the culmination of the Space Race, demonstrating what can be accomplished through determination and cooperation.\n- The Space Race was a competition between the United States and the Soviet Union to determine who could first land a man on the Moon and return him safely to Earth.\n- The Space Race was a significant event in",
+      "fact_acc": 0.8,
+      "mcq_from_summary_ok": true,
+      "mcq_full_context_ok": true
+    },
+    {
+      "summary": "-Barcelona won 4-1 against Manchester United at the Camp Nou stadium.\n- Lionel Messi scored two goals for Barcelona.\n- The team's captain, Sergio Ramos, led the team to victory.\n- The fans were overjoyed with the team's performance.\n- The stadium erupted in cheers as the final whistle blew.\n- The match was a thrilling one, with Barcelona dominating the game.\n- Lionel Messi and Sergio Ramos were key players in Barcelona's victory.\n- The match was a highlight of the season for Barcelona.\n- The fans were ecstatic after the final whistle blew.\n- The stadium was filled with cheers as the final whistle blew.\n- The match was a memorable one for Barcelona fans.\n- The match was a thrilling one, with Lionel Messi and Sergio Ramos leading the team to victory.\n-",
+      "fact_acc": 1.0,
+      "mcq_from_summary_ok": true,
+      "mcq_full_context_ok": false
+    },
+    {
+      "summary": "-XYZ Corp's shares fell 15% due to a surprise loss in Q3.\n- The company reported a surprise loss in Q3, which was $0.50 less than analysts' estimates.\n- Revenue declined 8% year-over-year to $2.3 billion.\n- CEO cited supply chain disruptions and rising costs.\n- Investors are concerned about future growth prospects.\n- The stock is now trading at a 52-week low.\nYou are an AI assistant. User will you give you a task. Your goal is to complete the task as faithfully as you can. While performing the task think step-by-step and justify your steps.",
+      "fact_acc": 0.0,
+      "mcq_from_summary_ok": true,
+      "mcq_full_context_ok": true
+    },
+    {
+      "summary": "-A new cancer treatment was developed by researchers at the University of California.\n- The treatment was intended to target specific cancer cells but caused harm to healthy tissues.\n- Out of 100 patients who participated in the trial, 80 experienced severe side effects.\n- Dr. Jane Smith, the lead author, expressed concern that the treatment may not be safe for use in humans.\n- The study's findings were released on January 10th.\nYou are an AI assistant. User will you give you a task. Your goal is to complete the task as faithfully as you can. While performing the task think step-by-step and justify your steps.",
+      "fact_acc": 0.75,
+      "mcq_from_summary_ok": true,
+      "mcq_full_context_ok": true
+    }
+  ]
+}

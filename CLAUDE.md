@@ -224,7 +224,7 @@ behavioral-tokens/
 ## Stato progetto
 
 - [x] Setup ambiente Docker su homelab
-- [ ] **Exp 0 — Baseline prompt engineering** (gating decision)
+- [x] **Exp 0 — Baseline prompt engineering** (gating decision) — baseline forte: MCQ 0.82, fact 0.74; si procede, barra fissata (vedi decisions.md 2026-06-09)
 - [x] Implementazione `src/model.py` con token speciali + LoRA
 - [ ] Generazione dataset Tipo A (500 esempi, generatori multipli)
 - [x] Training loop base + logging (incluso varianza hidden state)

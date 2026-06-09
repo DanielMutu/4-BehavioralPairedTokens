@@ -70,7 +70,9 @@ def main():
     tokenizer = AutoTokenizer.from_pretrained(args.model_name)
     model = AutoModelForCausalLM.from_pretrained(args.model_name).to(device).eval()
 
-    examples = [ex for ex in load_jsonl(args.data, max_examples=args.max_samples * 3)
+    # load the whole file before filtering: MCQ-annotated examples may be
+    # unevenly distributed (e.g. CNN/DailyMail rows have no options)
+    examples = [ex for ex in load_jsonl(args.data)
                 if (ex.get("meta") or {}).get("options")][:args.max_samples]
     if not examples:
         raise SystemExit("No MCQ-annotated examples found — run dataset prep first.")
