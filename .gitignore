@@ -1,0 +1,34 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# Data & artifacts (large / regenerable — keep handwritten examples versioned)
+data/raw/*
+data/processed/*
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+results/runs/
+results/checkpoints/
+*.safetensors
+*.bin
+*.pt
+
+# Logging
+wandb/
+tensorboard/
+*.log
+
+# HuggingFace cache (if local)
+.cache/
+
+# Notebooks checkpoints
+.ipynb_checkpoints/
+
+# Graphify output
+graphify-out/
+
+# Env
+.env

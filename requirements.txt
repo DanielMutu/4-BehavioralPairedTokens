@@ -1,0 +1,16 @@
+torch>=2.2
+transformers>=4.45
+peft>=0.15
+datasets>=2.20
+accelerate>=0.30
+scikit-learn>=1.4
+numpy>=1.26
+matplotlib>=3.8
+tensorboard>=2.16
+rouge-score>=0.1.2
+requests>=2.31
+tqdm>=4.66
+
+# optional
+# wandb>=0.17
+# bert-score>=0.3.13
