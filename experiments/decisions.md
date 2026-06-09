@@ -107,6 +107,24 @@ Ogni scelta non banale va registrata qui (regola CLAUDE.md).
   senza, la parte out-of-style — quella che distingue comportamento da
   stile — non viene misurata.
 
+## 2026-06-09 — Annotazione MCQ del test set held-out (CNN/DailyMail)
+
+- **Fatto**: i 386 esempi CNN/DailyMail di `test.jsonl` ora hanno
+  question/options/answer_idx + facts (`data/generation/annotate_mcq.py`).
+  Run: 386/386 annotati, 0 falliti, round-robin sulle 3 famiglie
+  (mistral-small 149, deepseek-flash 128, llama4-scout 109).
+  Ora tutti i 540 esempi di test sono valutabili con MCQ e fact retrieval —
+  prima la metrica MCQ copriva quasi solo lo stile sintetico (154/540).
+- **Shuffle posizione risposta corretta**: deterministico per riga
+  (`Random(20000+i)`). Motivo: i generatori LLM tendono a mettere l'opzione
+  giusta per prima; un bias posizionale corromperebbe la metrica MCQ via
+  log-likelihood. Verifica post-run: answer_idx distribuiti 102/101/86/97.
+- **Niente rischio leakage**: le annotazioni sono eval-only (mai usate in
+  training); l'annotatore è tracciato in `meta.mcq_annotator` per eventuali
+  analisi di robustezza per-famiglia.
+- **Nota**: `data/processed/` è fuori da git (regenerable); versionato lo
+  script, non i dati. Backup pre-annotazione in `test.jsonl.bak`.
+
 ## Template per nuove decisioni
 
 ```
