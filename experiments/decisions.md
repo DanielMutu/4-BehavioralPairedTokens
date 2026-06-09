@@ -38,6 +38,24 @@ Ogni scelta non banale va registrata qui (regola CLAUDE.md).
   `data/handwritten/` e CNN/DailyMail via `import_public.py` instradati
   preferenzialmente nel test set held-out (stile diverso dal training).
 
+## 2026-06-09 — Generazione dataset
+
+- **Ollama escluso dalla generazione bulk**: una singola richiesta a
+  `qwen3.5:4b` sulla GTX 970 impiega ~5 minuti — inutilizzabile per 1500
+  esempi. La diversità dei generatori (regola anti-leakage) è garantita da
+  **3 famiglie diverse via OpenRouter**: DeepSeek V4 Flash, Llama 4 Scout,
+  Mistral Small 2603 (round-robin, ~33% ciascuno per tipologia).
+- **Generazione parallela**: `generate_examples.py` usa un ThreadPoolExecutor
+  (`--workers`, default 6) con rng deterministico per task (`Random(10000+i)`);
+  over-provisioning 1.5× per assorbire risposte non valide. 1500 esempi in
+  ~15 minuti contro ~4 ore sequenziali.
+- **Probe set held-out**: `probe.jsonl` contiene solo esempi etichettati NON
+  presenti nel train (da eval+test). Probing su testi visti in training
+  gonfierebbe l'accuratezza del probe (Exp 3).
+- **Composizione split** (run del 2026-06-09): train=1334 (solo sintetico,
+  A/B/C bilanciati), eval=148, test=540 (386 CNN/DailyMail + 6 handwritten +
+  148 sintetici per confronto), probe=302.
+
 ## Template per nuove decisioni
 
 ```

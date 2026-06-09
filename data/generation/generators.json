@@ -1,22 +1,22 @@
 {
-  "_comment": "Multiple generators to avoid learning a single LLM's compression style (CLAUDE.md anti-leakage rule). api_key_env is read from the environment.",
+  "_comment": "Multiple generator FAMILIES to avoid learning a single LLM's compression style (CLAUDE.md anti-leakage rule). Local Ollama dropped for bulk generation: qwen3.5:4b on the GTX 970 takes ~5 min/request (see decisions.md 2026-06-09). api_key_env is read from the environment.",
   "generators": [
     {
-      "name": "ollama-local",
-      "base_url": "http://localhost:11434/v1",
-      "model": "qwen3.5:4b",
-      "api_key_env": null
-    },
-    {
-      "name": "openrouter-deepseek",
+      "name": "openrouter-deepseek-flash",
       "base_url": "https://openrouter.ai/api/v1",
-      "model": "deepseek/deepseek-chat",
+      "model": "deepseek/deepseek-v4-flash",
       "api_key_env": "OPENROUTER_API_KEY"
     },
     {
-      "name": "openrouter-llama",
+      "name": "openrouter-llama4-scout",
       "base_url": "https://openrouter.ai/api/v1",
-      "model": "meta-llama/llama-3.3-70b-instruct",
+      "model": "meta-llama/llama-4-scout",
+      "api_key_env": "OPENROUTER_API_KEY"
+    },
+    {
+      "name": "openrouter-mistral-small",
+      "base_url": "https://openrouter.ai/api/v1",
+      "model": "mistralai/mistral-small-2603",
       "api_key_env": "OPENROUTER_API_KEY"
     }
   ]

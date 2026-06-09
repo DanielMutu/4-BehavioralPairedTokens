@@ -18,6 +18,7 @@ import json
 import os
 import random
 import sys
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
 import requests
@@ -122,44 +123,59 @@ def build_example(raw: dict, ex_type: str, generator: str,
     return ex
 
 
+def generate_one(i: int, gen: dict, ex_type: str, label_kind: str) -> dict | None:
+    # per-task rng: deterministic given the task index, safe across threads
+    rng = random.Random(10_000 + i)
+    label = rng.choice(LABEL_SETS[label_kind])
+    prompt = GEN_PROMPT.format(topic=rng.choice(TOPICS),
+                               label_kind=label_kind, label=label)
+    try:
+        raw = parse_json_reply(call_generator(gen, prompt))
+        assert raw.get("context") and raw.get("target")
+        return build_example(raw, ex_type, gen["name"], label_kind, label, rng)
+    except Exception as e:  # noqa: BLE001 — generation is best-effort
+        print(f"[skip] {gen['name']}: {type(e).__name__}: {e}")
+        return None
+
+
 def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--type", required=True, choices=["A", "B", "C"])
     p.add_argument("--n", type=int, default=500)
     p.add_argument("--label-kind", default="sentiment", choices=list(LABEL_SETS))
     p.add_argument("--generators", default=str(Path(__file__).parent / "generators.json"))
+    p.add_argument("--workers", type=int, default=6)
     p.add_argument("--out", default=None)
     args = p.parse_args()
 
     set_seed(42)
-    rng = random.Random(42)
     generators = json.loads(Path(args.generators).read_text())["generators"]
     out_path = args.out or f"data/raw/generated_type{args.type}.jsonl"
 
-    examples, failures = [], 0
-    while len(examples) < args.n and failures < args.n:
-        gen = generators[len(examples) % len(generators)]  # round-robin
-        label = rng.choice(LABEL_SETS[args.label_kind])
-        prompt = GEN_PROMPT.format(topic=rng.choice(TOPICS),
-                                   label_kind=args.label_kind, label=label)
-        try:
-            raw = parse_json_reply(call_generator(gen, prompt))
-            assert raw.get("context") and raw.get("target")
-            examples.append(build_example(raw, args.type, gen["name"],
-                                          args.label_kind, label, rng))
-        except Exception as e:  # noqa: BLE001 — generation is best-effort
-            failures += 1
-            print(f"[skip] {gen['name']}: {type(e).__name__}: {e}")
-        if len(examples) % 25 == 0 and examples:
-            save_jsonl(examples, out_path)  # periodic flush
-            print(f"{len(examples)}/{args.n} examples...")
+    attempts = int(args.n * 1.5)  # over-provision for failed/invalid replies
+    examples = []
+    with ThreadPoolExecutor(max_workers=args.workers) as pool:
+        futures = [pool.submit(generate_one, i, generators[i % len(generators)],
+                               args.type, args.label_kind)
+                   for i in range(attempts)]
+        for fut in as_completed(futures):
+            ex = fut.result()
+            if ex is not None and len(examples) < args.n:
+                examples.append(ex)
+                if len(examples) % 25 == 0:
+                    save_jsonl(examples, out_path)  # periodic flush
+                    print(f"{len(examples)}/{args.n} examples...")
+            if len(examples) >= args.n:
+                for f in futures:
+                    f.cancel()
+                break
 
     save_jsonl(examples, out_path)
     by_gen = {}
     for ex in examples:
         by_gen[ex["meta"]["generator"]] = by_gen.get(ex["meta"]["generator"], 0) + 1
     print(f"Done: {len(examples)} examples -> {out_path} "
-          f"(failures: {failures}, per generator: {by_gen})")
+          f"(per generator: {by_gen})")
 
 
 if __name__ == "__main__":

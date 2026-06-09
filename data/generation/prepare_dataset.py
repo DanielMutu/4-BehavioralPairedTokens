@@ -62,8 +62,10 @@ def main():
     save_jsonl(train_set, out / "train.jsonl")
     save_jsonl(eval_set, out / "eval.jsonl")
     save_jsonl(test_set, out / "test.jsonl")
-    # probe set: only labeled examples (Exp 3)
-    probe_set = [ex for ex in unique if (ex.get("meta") or {}).get("label")]
+    # probe set (Exp 3): labeled examples NOT seen in training — probing on
+    # training texts would inflate probe accuracy
+    probe_set = [ex for ex in eval_set + test_set
+                 if (ex.get("meta") or {}).get("label")]
     save_jsonl(probe_set, out / "probe.jsonl")
 
     print(f"train={len(train_set)} eval={len(eval_set)} test={len(test_set)} "
