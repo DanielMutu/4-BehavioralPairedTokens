@@ -221,6 +221,31 @@ behavioral-tokens/
 
 ---
 
+## Exp 0 — I risultati spiegati semplici (2026-06-09)
+
+**Cosa è stato fatto in Exp 0.** Prima di addestrare qualsiasi cosa, è stato chiesto al modello base (senza alcuna modifica): "riassumi questo testo, poi rispondi a domande usando solo il riassunto". È il test del "serve davvero il progetto, o basta chiedere per favore?".
+
+**Cosa è uscito.** Il modello risponde correttamente all'**82%** delle domande a scelta multipla usando solo il proprio riassunto. Tirando a caso farebbe il 25%, quindi è un risultato forte. La sorpresa: quando gli dai il testo completo invece del riassunto, scende al **74%**. Sembra assurdo — più informazione, peggior risultato.
+
+**Perché succede (in parole povere).** Un modello da 0.5B è come uno studente con poca memoria di lavoro. Se gli dai un articolo intero, si perde tra i dettagli irrilevanti. Se gli dai un bigino fatto bene, si concentra e risponde meglio. Il riassunto funziona da filtro anti-rumore. È un'arma a doppio taglio:
+
+- **Cattiva notizia**: la compressione "gratis" (chiedere un riassunto) funziona già benissimo. I token addestrati devono battere 0.82, ed è un'asticella alta.
+- **Buona notizia**: conferma la premessa del progetto — i modelli piccoli beneficiano della compressione. E il prompt baseline non può offrire ciò che i token offrono: il riassunto sono ~150 token di testo, `[COMPRESS]` è un singolo vettore. È una compressione ~100 volte più densa. Inoltre il riassunto non si può ispezionare dall'interno né manipolare causalmente.
+
+**Il debug run del training.** Nessuna misura scientifica — solo verifica che la macchina funzioni. La loss scende regolarmente (il modello impara il pattern), nessun errore numerico, e soprattutto la varianza degli hidden state resta sana. Tradotto: il rischio era che il modello imparasse a produrre sempre lo stesso identico vettore per `[COMPRESS]` indipendentemente dal testo (il "collasso" — come uno studente che risponde sempre "42" a tutto). Non sta succedendo. Il codice è pronto per il run vero.
+
+**Cosa significa "hidden state" e "probing"** (verranno usati molto). Quando il modello legge il token `[COMPRESS]`, internamente produce un vettore di numeri (l'hidden state) — è il suo "pensiero" in quel momento. Il probing significa addestrare un piccolo classificatore esterno che guarda solo quel vettore e prova a indovinare, ad esempio, il sentiment del testo originale. Se ci riesce, vuol dire che il vettore contiene davvero l'informazione compressa. I controlli servono a escludere spiegazioni banali (es. che qualsiasi token a caso contenga già quell'informazione).
+
+### Come procedere (prima di lanciare i prossimi run)
+
+1. **Criterio gating fissato ORA in decisions.md** (a risultati non visti): criterio primario "batte 0.82", criterio secondario legittimo "pareggia 0.82 con compressione ~100×". Soglia esplicita: dato il rumore con n=50, è "pareggio" tutto ciò che sta entro ±5 punti; il verdetto finale usa tutti i 154 MCQ del test set.
+2. **Generare le opzioni MCQ per i 386 esempi CNN/DailyMail** prima di Exp 2, non dopo. Costo basso, valore alto: senza, il test "out-of-style" non misura nulla, ed è la parte che dimostra che il modello ha imparato un comportamento e non uno stile.
+3. **Lanciare Exp 1 overnight.** Pronto, rischio basso. Se perplexity WikiText-2 e task downstream non degradano → via libera per Exp 2.
+
+**Nota onesta sul rischio principale.** Il punto di maggior rischio del progetto non è la tecnica: è che Exp 2 dia un risultato marginale — né vittoria né sconfitta chiara — lasciando il progetto in limbo. Per questo il criterio secondario (efficienza a parità di accuracy) deciso adesso è importante: dà una via d'uscita onorevole e scientificamente legittima che sposta il valore su Exp 3 e 5, dove il progetto è davvero originale. Anche un risultato "i token non battono il prompt baseline" è pubblicabile come negative result ben documentato, se i controlli sono rigorosi come impostati.
+
+---
+
 ## Stato progetto
 
 - [x] Setup ambiente Docker su homelab

@@ -85,6 +85,28 @@ Ogni scelta non banale va registrata qui (regola CLAUDE.md).
   opzioni e non sono distribuite uniformemente; il vecchio limite
   `max_samples * 3` ne scartava la maggior parte.
 
+## 2026-06-09 — Criterio gating per Exp 2 (fissato PRIMA di vedere i risultati)
+
+- **Decisione**: il verdetto gating al confronto Exp 2 vs baseline Exp 0 usa
+  due criteri, decisi ora a risultati non visti:
+  1. **Primario**: i token addestrati battono `mcq_from_summary = 0.82`
+     (e `summary_fact_retrieval = 0.742`) a parità di protocollo.
+  2. **Secondario (legittimo)**: pareggiano la baseline con compressione
+     ~100× più densa — il riassunto del prompt baseline costa ~150 token,
+     `[COMPRESS]` è un singolo hidden state. A parità di accuracy, vince
+     l'efficienza; il valore del progetto si sposta su Exp 3/5 (meccanismo).
+- **Soglia di pareggio**: dato il rumore con n=50, è "pareggio" tutto ciò
+  che sta entro ±5 punti percentuali. Il verdetto finale si dà su **tutti
+  i 154 esempi MCQ del test set**, non su 50.
+- **Motivo**: fissare i criteri prima dei risultati evita di razionalizzare
+  a posteriori un esito marginale (rischio principale del progetto: un Exp 2
+  né vittoria né sconfitta). Un esito "i token non battono il baseline" con
+  controlli rigorosi resta pubblicabile come negative result.
+- **Prerequisito per Exp 2**: generare le opzioni MCQ per i 386 esempi
+  CNN/DailyMail del test set (oggi quasi solo i sintetici le hanno):
+  senza, la parte out-of-style — quella che distingue comportamento da
+  stile — non viene misurata.
+
 ## Template per nuove decisioni
 
 ```
