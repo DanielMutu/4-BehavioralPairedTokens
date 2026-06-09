@@ -125,6 +125,24 @@ Ogni scelta non banale va registrata qui (regola CLAUDE.md).
 - **Nota**: `data/processed/` è fuori da git (regenerable); versionato lo
   script, non i dati. Backup pre-annotazione in `test.jsonl.bak`.
 
+## 2026-06-09 — Ri-annotazione delle 109 righe Llama 4 Scout
+
+- **Problema**: ispezione manuale (10 esempi/famiglia) ha mostrato che le
+  annotazioni di Llama 4 Scout erano sistematicamente più deboli: facts
+  poveri (sole entità, ~57 chars medi vs ~250 delle altre famiglie) e
+  almeno una annotazione errata (risposta "2013" a una domanda sull'età).
+- **Decisione**: ri-annotate tutte le 109 righe Scout con le sole altre due
+  famiglie (`--redo-annotator` / `--exclude-generator` aggiunti allo
+  script). Esito: 109/109 ok, ora il test set CNN/DailyMail è annotato
+  solo da Mistral Small (205) e DeepSeek Flash (181); answer_idx ben
+  distribuiti (103/92/93/98); facts medi passati da 57 a 249 chars.
+- **Fix incluso**: su redo lo script ora sovrascrive anche i `facts`
+  (prima li riempiva solo se vuoti, lasciando quelli vecchi di Scout).
+- **Nota**: Scout resta tra i generatori del *training* set (lì la
+  diversità di famiglie è la mitigazione anti-leakage e lo stile debole
+  di un generatore è rumore accettabile); è escluso solo dall'annotazione
+  *eval*, dove la qualità delle domande determina la validità della metrica.
+
 ## Template per nuove decisioni
 
 ```

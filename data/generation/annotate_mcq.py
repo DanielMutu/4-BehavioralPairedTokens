@@ -85,16 +85,26 @@ def main():
                    help="only annotate rows with this meta.source")
     p.add_argument("--generators", default=str(Path(__file__).parent / "generators.json"))
     p.add_argument("--workers", type=int, default=6)
+    p.add_argument("--redo-annotator", default=None,
+                   help="re-annotate rows previously annotated by this generator")
+    p.add_argument("--exclude-generator", default=None,
+                   help="drop this generator from the round-robin")
     args = p.parse_args()
 
     set_seed(42)
     generators = json.loads(Path(args.generators).read_text())["generators"]
+    if args.exclude_generator:
+        generators = [g for g in generators if g["name"] != args.exclude_generator]
+        assert generators, "no generators left after --exclude-generator"
     path = Path(args.data)
     rows = [json.loads(l) for l in path.read_text().splitlines() if l.strip()]
 
+    redo = {i for i, r in enumerate(rows)
+            if (r.get("meta") or {}).get("source") == args.source
+            and r["meta"].get("mcq_annotator") == args.redo_annotator}
     todo = [i for i, r in enumerate(rows)
             if (r.get("meta") or {}).get("source") == args.source
-            and not (r["meta"].get("options"))]
+            and (not r["meta"].get("options") or i in redo)]
     print(f"{len(todo)} rows to annotate out of {len(rows)}")
 
     done = failed = 0
@@ -109,7 +119,9 @@ def main():
             meta = rows[i]["meta"]
             meta.update({k: ann[k] for k in
                          ("question", "options", "answer_idx", "mcq_annotator")})
-            if not meta.get("facts"):
+            # on redo, the old facts come from the annotator being replaced:
+            # overwrite them along with the question
+            if not meta.get("facts") or i in redo:
                 meta["facts"] = ann["facts"]
             by_gen[ann["mcq_annotator"]] = by_gen.get(ann["mcq_annotator"], 0) + 1
             done += 1
