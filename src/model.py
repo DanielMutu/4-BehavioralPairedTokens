@@ -32,7 +32,7 @@ def load_base_model(model_name: str, tokenizer, dtype: torch.dtype | None = None
     vocab, so new token ids usually already fit; we only resize when needed,
     then mean-initialize the new rows (more stable than random init).
     """
-    model = AutoModelForCausalLM.from_pretrained(model_name, torch_dtype=dtype)
+    model = AutoModelForCausalLM.from_pretrained(model_name, dtype=dtype)
     n_rows = model.get_input_embeddings().weight.shape[0]
     if len(tokenizer) > n_rows:
         model.resize_token_embeddings(len(tokenizer))

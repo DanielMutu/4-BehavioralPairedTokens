@@ -172,6 +172,14 @@ def train(cfg: TrainConfig) -> None:
                 if step % cfg.save_steps == 0:
                     save_checkpoint(model, tokenizer, cfg, "last")
 
+    # final eval so short runs (debug) still produce a best checkpoint
+    eval_metrics = evaluate(model, eval_loader, device, cfg.lambda_c)
+    for k, v in eval_metrics.items():
+        writer.add_scalar(k, v, step)
+    if eval_metrics.get("eval/loss_ce", float("inf")) < best_eval:
+        best_eval = eval_metrics["eval/loss_ce"]
+        save_checkpoint(model, tokenizer, cfg, "best")
+
     save_checkpoint(model, tokenizer, cfg, "last")
     writer.close()
     if wandb:
