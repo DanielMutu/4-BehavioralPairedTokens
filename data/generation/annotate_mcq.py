@@ -97,7 +97,7 @@ def main():
         generators = [g for g in generators if g["name"] != args.exclude_generator]
         assert generators, "no generators left after --exclude-generator"
     path = Path(args.data)
-    rows = [json.loads(l) for l in path.read_text().splitlines() if l.strip()]
+    rows = [json.loads(line) for line in path.read_text().splitlines() if line.strip()]
 
     redo = {i for i, r in enumerate(rows)
             if (r.get("meta") or {}).get("source") == args.source

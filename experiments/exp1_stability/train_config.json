@@ -1,0 +1,32 @@
+{
+  "model_name": "Qwen/Qwen2.5-0.5B",
+  "lora_r": 16,
+  "lora_alpha": 32,
+  "lora_dropout": 0.05,
+  "lora_target_modules": [
+    "q_proj",
+    "v_proj"
+  ],
+  "train_file": "data/processed/train.jsonl",
+  "eval_file": "data/processed/eval.jsonl",
+  "max_length": 384,
+  "loss_on_target_only": true,
+  "seed": 42,
+  "epochs": 3,
+  "batch_size": 4,
+  "grad_accum": 4,
+  "lr": 0.0002,
+  "warmup_ratio": 0.03,
+  "weight_decay": 0.0,
+  "max_grad_norm": 1.0,
+  "lambda_c": 0.0,
+  "run_name": "exp1-stability",
+  "output_dir": "results/checkpoints",
+  "log_dir": "results/runs",
+  "save_steps": 200,
+  "eval_steps": 100,
+  "log_steps": 10,
+  "use_wandb": false,
+  "device": "cpu",
+  "debug": false
+}

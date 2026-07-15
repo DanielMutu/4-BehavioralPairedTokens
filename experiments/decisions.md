@@ -143,6 +143,281 @@ Ogni scelta non banale va registrata qui (regola CLAUDE.md).
   di un generatore è rumore accettabile); è escluso solo dall'annotazione
   *eval*, dove la qualità delle domande determina la validità della metrica.
 
+## 2026-06-13 — Exp 1: setup, gate pre-registrato e vincolo CPU
+
+- **Vincolo hardware scoperto**: il torch installato è CPU-only
+  (`2.12.0+cpu`, `cuda_avail=False`); la GTX 970 (Maxwell, 4GB) non è
+  utilizzabile. Exp 1 gira interamente su CPU (i7-6700, 4 thread).
+  Throughput misurato: ~8.9 s/batch (bs=4, len≤384) → 3 epoch ≈ 2.5 h.
+  Coerente con "training overnight su config leggere".
+- **Config run reale** (`experiments/exp1_stability/train_config.json`):
+  `max_length=384` invece di 1024 — la distribuzione reale del train set ha
+  max 342 token (p99=290), quindi nessun troncamento e CPU più veloce.
+  `epochs=3, batch_size=4, grad_accum=4` (effettivo 16), `lambda_c=0`
+  (consistency OFF al primo giro, regola CLAUDE.md), `seed=42`.
+- **Gate pre-registrato (a risultati non visti)**: PASS sse
+  (1) perplexity WikiText-2 aumenta di ≤ 5% (relativo), E
+  (2) ogni accuracy downstream cala di ≤ 2.0 punti (assoluti).
+  Motivo della soglia: Exp 1 verifica *stabilità*, non miglioramento — il
+  fine-tuning LoRA + i nuovi token non devono rompere le capacità generali.
+  Implementato in `experiments/exp1_stability/run_exp1.py`.
+- **Benchmark downstream scelti: HellaSwag + MMLU** (multiple-choice,
+  scored via log-likelihood normalizzata per lunghezza, stesso protocollo di
+  `option_loglik` già usato per gli MCQ). **GSM8K escluso volutamente**:
+  è generativo, un modello 0.5B base sta vicino al chance level (nessun
+  headroom per rilevare una degradazione), e la generazione è lenta su CPU.
+  Un test di stabilità ha bisogno di metriche con margine per *scendere*;
+  GSM8K già a terra non può mostrare degrado. Numeri cloze-style: conta solo
+  il DELTA base-vs-trained, non il valore assoluto vs leaderboard.
+- **Confronto equo**: "base" = modello originale + token aggiunti
+  (mean-init, mai usati nei testi dei benchmark) senza adapter; "trained" =
+  + adapter LoRA. L'adapter agisce su q_proj/v_proj in ogni forward, quindi
+  il delta misura proprio l'effetto del fine-tuning sulle capacità generali.
+
+## 2026-06-14 — Exp 1: esito del training run (checkpoint `exp1-stability`)
+
+- **Run completato**: 2026-06-13 21:51 → 2026-06-14 00:16 (~2h25), CPU,
+  3 epoch (~250 optimizer step). Parametri trainabili 1.084.032 (0.22%).
+- **Salute (TensorBoard `results/runs/exp1-stability`)**:
+  - `train/loss_ce` 1.97 → 0.84 (min 0.72); `eval/loss_ce` 0.939 → **0.907**
+    (best, step 249).
+  - `train/perplexity` 7.15 → 2.31; `eval/perplexity` 2.60 → 2.52.
+  - `loss_consistency` = 0.0 costante (atteso, `lambda_c=0`).
+  - **Varianza hidden `[COMPRESS]`**: train 18.8 → 16.0 (range 12–39),
+    eval 23.3 → 20.3. **Nessun collasso** — il controllo anti-degenerazione
+    centrale del progetto è verde.
+- **Decisione**: training accettato come sano; si procede allo step di
+  *valutazione* di stabilità (separato dal training). Il verdetto PASS/FAIL
+  di Exp 1 NON è ancora dato: dipende dal confronto base-vs-trained su
+  WikiText-2/HellaSwag/MMLU prodotto da `run_exp1.py`.
+- **Nota di processo**: il training e la valutazione sono due script distinti
+  (`src/train.py` addestra, `experiments/exp1_stability/run_exp1.py` valuta).
+  Aver lanciato solo il primo non chiude Exp 1.
+
+## 2026-06-14 — Fix caricamento dataset WikiText in `src/eval.py`
+
+- **Problema**: `run_exp1.py` crashava all'avvio della valutazione in
+  `wikitext_perplexity`: `load_dataset("wikitext", "wikitext-2-raw-v1")` usa
+  il nome canonico legacy, non più risolvibile con `datasets 5.0.0` /
+  `huggingface_hub 1.18.0` (`HfUriError: Repository id must be
+  'namespace/name'`).
+- **Decisione**: usare il repo id namespaced `Salesforce/wikitext` (mirror
+  ufficiale, stesso contenuto). HellaSwag (`Rowan/hellaswag`) e MMLU
+  (`cais/mmlu`) erano già namespaced → nessuna modifica. Fix in `src/eval.py:48`.
+- **Impatto**: sblocca Exp 1 e ogni futura chiamata a `wikitext_perplexity`
+  (riusata negli esperimenti successivi). Valutazione rilanciata su CPU.
+
+## 2026-06-14 — Exp 1: VERDETTO = FAIL (la ricetta degrada il modello)
+
+- **Risultati** (`results/exp1_stability.json`, 200 campioni downstream,
+  100 blocchi WikiText):
+  - WikiText-2 ppl: 14.399 → 17.956 (**+24.7%**) → FAIL (gate ≤ +5%).
+  - HellaSwag: 0.460 → 0.475 (−1.5 pt, migliora) → ok.
+  - MMLU: 0.275 → 0.235 (**+4.0 pt di calo**) → FAIL (gate ≤ 2.0).
+  - `PASS = false`.
+- **Lettura**: over-specializzazione sul task. La `eval/loss_ce` del task era
+  ottima (ppl 2.52), ma le capacità generali sono peggiorate → catastrophic
+  forgetting da training troppo aggressivo su distribuzione stretta. Coerente
+  col fatto che il *training* era "sano" (nessun collasso): collasso e
+  forgetting sono problemi diversi — il primo è degenerazione dell'hidden
+  state, il secondo è perdita di capacità generali. Exp 1 cattura il secondo.
+- **Decisione**: Exp 2 **resta bloccato**. Va corretta la ricetta e ri-passato
+  questo stesso gate (soglie invariate) prima di misurare il recall — altrimenti
+  un eventuale Exp 2 debole sarebbe inattribuibile (token deboli o modello rotto?).
+- **Fix candidati** (scelta da fare): (1) `lr` più basso (es. 5e-5) e/o 1 epoca;
+  (2) **replay** di language modeling generico (~10–20% del train); (3) adapter
+  meno capiente (`r=8`) o `lora_dropout` più alto; (4) selezione checkpoint con
+  mini-gate di stabilità (ppl generica) durante il training, non solo sulla loss
+  del task. Dettagli e tabella in `experiments/exp1_stability/README.md`.
+
+## 2026-07-15 — Avvio pipeline v2: true bottleneck e salvaguardia v0
+
+- **Branch**: creata `feat/true-compress-bottleneck-v2` dalla `main` corrente,
+  preservando senza stash/reset le modifiche Exp 1 già staged/unstaged.
+- **Perché serve una v2**: la pipeline v0 usa causal attention ordinaria, quindi
+  i token dopo `[COMPRESS]` possono ancora leggere direttamente il contesto;
+  inoltre lo split v0 include 148 contesti del train nel test e nel probe.
+  Gli artefatti v0 restano storici, ma non supportano claim definitivi di true
+  compression o probing held-out.
+- **Politica artefatti**: nessun risultato v0 viene sovrascritto. Prima delle
+  modifiche sono stati rilevati gli SHA-256 degli split e risultati correnti;
+  saranno registrati nel manifest v0/v2 prodotto dal nuovo data contract.
+- **Ordine dei gate**: test/contratto dati → split disgiunti → attention
+  bottleneck toy gate → Exp 0 v2 → Exp 1b stabilità → Exp 2. Un FAIL blocca lo
+  step successivo e viene documentato, non aggirato.
+- **Decisione architetturale**: prima implementazione corretta tramite mask
+  additiva 4D e decoder greedy full-recomputation (`use_cache=False`). La
+  potatura KV è un'ottimizzazione successiva e sarà accettata solo se i logits
+  coincidono con il decoder reference mantenendo le posizioni RoPE assolute.
+
+## 2026-07-15 — Sessione v2 interrotta: stato verificato/non verificato e piano di ripresa
+
+- **Cosa è successo**: l'esecuzione autonoma del piano v2 si è interrotta per
+  esaurimento crediti OpenRouter (proxy DeepClaude in modalità `proxy-or`).
+  Ultimo atto della sessione: fix a `tests/test_bottleneck.py` applicato ma
+  **mai ri-verificato** — pytest non è stato rilanciato dopo il fix.
+- **Stato VERIFICATO** (output visto a schermo prima del crash):
+  - branch `feat/true-compress-bottleneck-v2` creata, modifiche v0 preservate;
+  - SHA-256 di split e risultati v0 rilevati (per il manifest v0/v2);
+  - `uv lock` + `uv sync --dev` completati; `torch 2.12.0+cpu` importa,
+    `cuda_available=False` come atteso;
+  - digest `python:3.11-slim` risolto e pinnato nel Dockerfile.
+- **Stato NON VERIFICATO** (scritto ma mai eseguito con successo):
+  - suite pytest: unica esecuzione parzialmente rossa, poi fix e crash;
+  - `src/data_contract.py` (~390 righe): mai eseguito, nemmeno import;
+  - `data/generation/prepare_dataset.py` v2: mai eseguito, nemmeno su fixture;
+  - CI workflow: mai girata.
+- **Caveat qualità del codice**: parte del codice v2 è stata generata con il
+  proxy in modalità OpenRouter — il backend reale può essere stato DeepSeek
+  anche quando la UI mostrava Opus/Fable. In `src/bottleneck.py` c'era già un
+  errore di sintassi (`n most`) corretto a mano. Decisione: `data_contract.py`
+  e `bottleneck.py` vanno **riletti integralmente** prima di fidarsi dei test
+  che li coprono (i test stessi provengono dalla stessa sessione).
+- **Incoerenza ambiente da sanare**: `requirements.txt` pinna `torch==2.12.0`
+  (PyPI → wheel CUDA), mentre `uv.lock`/venv usano `2.12.0+cpu` dall'indice
+  PyTorch dedicato dichiarato in `pyproject.toml`. Chi installa da
+  requirements ottiene un ambiente diverso da quello testato.
+- **Decisione di perimetro per la ripresa**: eseguire il piano fino a
+  **toy gate bottleneck + Exp 0 v2** e fermarsi a rapporto prima di Exp 1b
+  (~2.5 h CPU). I blocchi del piano su Exp 3/4/5 si implementano solo quando
+  i gate precedenti passano: codice scritto ora verrebbe riscritto comunque.
+- **Prerequisito scientifico prima di Exp 0 v2**: ri-pinnare il criterio
+  gating di Exp 2 a risultati non visti. La voce 2026-06-09 fissa il verdetto
+  su 154 MCQ, ma oggi il test set ne ha 540 annotati e gli split v2 lo
+  cambieranno di nuovo. La nuova voce dovrà fissare: n esatto sul test v2,
+  baseline Exp 0 ricalcolata sull'intero set (0.82 era su n=50, quasi solo
+  sintetici), e un numero separato per la parte out-of-style CNN/DailyMail,
+  che oggi non ha alcuna baseline.
+- **Nota statistica per il gate di Exp 1b** (da applicare, soglie invariate):
+  con 200 campioni downstream la sd binomiale di una accuracy è ~3 pt, quindi
+  la soglia di gate (2.0 pt) è più stretta della precisione della misura — il
+  FAIL v0 resta valido perché la ppl +24.7% è inequivocabile, ma il prossimo
+  verdetto downstream va dato con più campioni o con McNemar appaiato sugli
+  stessi item.
+- **Bug infrastrutturale (fuori progetto, da verificare)**: `/compact` è
+  fallito con `anthropic/claude-fable-5 ... may not exist` mentre il proxy era
+  in modalità OpenRouter → il passthrough dei modelli non mappati in
+  `~/Work/2-DeepClaude/proxy/model-proxy.js` non copre `claude-fable-*`,
+  contraddicendo il CLAUDE.md homelab ("i modelli senza voce in MODEL_REMAP
+  vanno sempre diretti ad Anthropic"). Mitigazione operativa: `proxy-an` prima
+  di sessioni lunghe.
+- **Fix documentali contestuali** (2026-07-15): il riferimento in
+  `qualitative_playground.md` a una voce "2026-07-14" di questo log era rotto
+  (la voce non è mai stata scritta; l'analisi vive nel README di Exp 1 e nel
+  playground stesso) → corretto. Aggiunto al playground il caveat che i ✅
+  T1/T2 non dimostrano compressione sotto la pipeline v0 (attention non
+  mascherata → copying attentivo possibile). Le voci storiche di questo log
+  restano intoccate.
+
+## 2026-07-15 — Gate 0 chiuso: suite test verde (31 passed) + fix lint CI
+
+- **Contesto**: al primo push su GitHub la CI è fallita allo step lint (4
+  errori ruff banali: variabile `l`, import inutilizzato, `zip` senza
+  `strict`, `warnings.warn` senza `stacklevel`). Corretti tutti.
+- **Il test rosso era mal posto, non la mask**: il fallimento di
+  `test_gradient_reaches_context_only_via_anchor` era causato dal modellino
+  di test `TinyAttention` a **1 solo layer**: lì le K/V dell'anchor viste
+  dalle query successive sono solo `emb[anchor]`, quindi il contesto non ha
+  *nessuna* rotta verso le posizioni post-anchor — nemmeno quella legittima —
+  e il gradiente zero era il comportamento corretto. Portato a 2 layer
+  (minimo perché la rotta esista: layer 1 → l'anchor aggrega il contesto nel
+  proprio hidden state; layer 2 → le query post-anchor leggono le K/V
+  dell'anchor).
+- **Nota concettuale non banale**: l'informazione attraversa il bottleneck
+  solo tramite gli hidden state dell'anchor dei layer ≥ 1, mai al layer di
+  embedding. Coerente con la decisione 2026-06-09 di fare probing e
+  intervento causale su un layer intermedio, non sull'ultimo.
+- **Esito**: `pytest` 31 passed, `ruff` pulito → gate 0 PASS. Restano dovute:
+  la review severa di `data_contract.py`/`bottleneck.py` (i test provengono
+  dalla stessa sessione non fidata) e la prima esecuzione reale di
+  `prepare_dataset.py` su fixture (i gate successivi del piano).
+
+## 2026-07-15 — Review di data_contract.py e bottleneck.py: esito e fix
+
+Review integrale dei due moduli ereditati dalla sessione col backend
+OpenRouter (obbligo registrato il 2026-07-15). Esito: **impianto corretto,
+5 difetti reali corretti, 1 claim critica ora VERIFICATA su Qwen reale**.
+
+- **Claim verificata (era solo asserita in docstring)**: transformers 5.10.2
+  onora davvero la mask additiva 4D `(B,1,T,T)` passata come `attention_mask`
+  a Qwen2 con SDPA. Nuova suite `tests/test_qwen_integration.py` (marker
+  `integration`, esclusa dalla CI, gira sul checkpoint locale in ~9 s):
+  1. mask causale 4D esplicita ≡ path causale di libreria (convenzione additiva ok);
+  2. la mask bottleneck produce logits diversi dalla causale (non viene ignorata);
+  3. controllo positivo: editando il contesto (a livello di ID) i logits
+     post-anchor cambiano → la rotta legittima via anchor esiste;
+  4. controllo negativo: bloccando anche la chiave dell'anchor, i logits
+     post-anchor sono ESATTAMENTE invarianti all'edit del contesto → **zero
+     leak attorno al bottleneck**;
+  5. batch right-padded senza NaN; 6. smoke del reference decoder.
+  Nota: verificata l'implementazione attention di default (SDPA); il path
+  eager non è testato — se si cambia `attn_implementation`, ritestare.
+- **Fix in `data_contract.py`**:
+  1. `upgrade_legacy_example` ora inferisce `label_kind` dal valore di `label`
+     quando assente (vocabolari disgiunti) — le righe v0 con label senza kind
+     avrebbero fatto crashare l'intera rebuild;
+  2. `assert_disjoint` accetta `pairs` extra: ora `prepare_dataset` impone
+     anche eval∩test=∅ (prima solo train-vs-tutti; probe resta escluso perché
+     vista derivata di eval+test);
+  3. `answer_idx=True` non passa più la validazione MCQ (bool è int in Python);
+  4. I/O `CohortSelection` con encoding UTF-8 esplicito;
+  5. la chiave legacy `distance` viene sempre rimossa (prima poteva
+     sopravvivere accanto a `distance_target_tokens`).
+- **Fix in `bottleneck.py`**: guardia contro righe di query completamente
+  mascherate (softmax tutta −inf → NaN che avvelena anche le posizioni reali
+  via 0·NaN=NaN nei layer successivi). Succede col LEFT padding → ora
+  rifiutato con errore esplicito; la pipeline richiede right padding.
+- **Non-difetti verificati**: la strategia boundary di `option_loglik`
+  (prefisso comune tra tokenizzazioni) è corretta; l'esclusione delle
+  annotazioni MCQ da `example_id` è intenzionale (ri-annotare non cambia
+  l'identità); l'overlap probe/eval/test nel manifest è by design.
+- **Nota minore aperta**: `_git_state()` dipende dalla CWD (manifest costruiti
+  fuori dalla root registrerebbero il git sbagliato o None) — accettato per ora.
+- **Esito suite**: 40 passed (34 unit + 6 integration), ruff pulito.
+  Prossimo gate: build dati v2 su fixture (`prepare_dataset.py`).
+
+## 2026-07-15 — Build dati v2 eseguita: split disgiunti, manifest, annotazioni salvate
+
+Gate "build dati v2" del piano: PASS. Sequenza eseguita e verificata:
+
+- **Fixture gate**: build end-to-end su campione di righe raw reali (60
+  sintetiche + 12 CNN + 6 handwritten) → conteggi conservati, overlap
+  train/eval/test tutti a zero, `--check` verde, e **due build consecutive
+  producono file byte-identici** (determinismo).
+- **Salvaguardia v0**: split v0 copiati in `data/processed_v0/` con SHA-256
+  registrati in `hashes.json` (versionato; i dati restano locali come da
+  policy "script versionati, non dati"). Hash train v0:
+  `0210448d…`, test v0: `9fe2cf4f…` (completi nel file).
+- **Backfill annotazioni MCQ nei raw** (con backup `.pre_backfill.bak`):
+  le 386 annotazioni CNN/DailyMail vivevano SOLO nel `test.jsonl` v0 — una
+  rebuild ingenua dai raw le avrebbe perse. Riportate nei due file raw via
+  `content_id` (che per design non cambia con le annotazioni): 400/400
+  righe agganciate (386 uniche + 14 duplicati poi dedupe). Ora i raw sono
+  autosufficienti per qualsiasi rebuild futura.
+- **Build reale** (`disjoint-segments-v2`, seed 42):
+  train=1197 (solo sintetico), eval=149, test=541 (386 CNN + 6 handwritten
+  + 149 sintetici in-style), probe=304. Overlap: train↔{eval,test,probe}=0,
+  eval↔test=0; probe↔{eval,test}>0 by design (vista derivata).
+  **MCQ: 541/541 righe di test annotate.** Scarti: 5 dup sintetici,
+  14 dup CNN, 0 incroci. Manifest: `data/processed/manifest.json`
+  (versionato via eccezione .gitignore).
+- **Decisione — tutti i CNN nel test, incluso `public_cnndm_train.jsonl`**:
+  il file era stato importato con ruolo "train replay" (mai usato), ma
+  instradare 300 righe CNN nel training distruggerebbe la proprietà
+  "stile held-out" del test che distingue comportamento da stile. Finché il
+  protocollo usa CNN come stile held-out, tutto CNN va nel test (stesso
+  comportamento v0, ora esplicito). Alternativa scartata: rispettare il
+  ruolo d'importazione — riconsiderabile solo se si introdurrà replay di
+  dominio, che comunque dovrà usare testo generico (WikiText/C4), non CNN.
+- **Nota**: il manifest registra `git.commit=9caee45, dirty=true` — è lo
+  stato al momento della build (il commit che versiona il manifest è per
+  forza successivo). L'integrità dei dati è garantita dagli SHA-256 degli
+  split, non dal flag git.
+- **Conseguenza per il gating Exp 2** (già previsto): il test v2 ha 541
+  righe tutte MCQ-annotate; i 149 sintetici in-style sono righe MAI viste
+  in training (in v0 erano 148 righe riusate dal train). La baseline Exp 0
+  va ricalcolata su questo set (prossima voce di pre-registrazione).
+
 ## Template per nuove decisioni
 
 ```

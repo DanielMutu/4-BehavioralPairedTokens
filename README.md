@@ -7,16 +7,28 @@ con verifica tramite probing rigoroso e intervento causale.
 
 Contesto completo, ipotesi, letteratura e regole: **[CLAUDE.md](CLAUDE.md)**.
 Log decisioni: **[experiments/decisions.md](experiments/decisions.md)**.
+Stato file per file: **[CHANGELOG.md](CHANGELOG.md)**.
+
+> ⚠️ **Stato (2026-07-15)**: sul branch `feat/true-compress-bottleneck-v2` è in
+> corso la **pipeline v2** (true attention bottleneck + split disgiunti),
+> interrotta a metà — la suite di test NON è garantita verde e i moduli v2
+> (`src/data_contract.py`, `src/bottleneck.py`) non sono ancora validati.
+> Prima di usare qualsiasi cosa: `CLAUDE.md` → sezione "Pipeline v2".
 
 ## Setup
 
 ```bash
 cd ~/Work/4-BehavioralPairedTokens
-uv venv --python 3.11 && source .venv/bin/activate
-uv pip install -r requirements.txt
+uv sync --dev            # ambiente bloccato da uv.lock (torch CPU)
+uv run pytest -q         # gate 0 — al 2026-07-15 NON garantito verde
 ```
 
-Oppure via Docker (CPU/debug): `docker build -t behavioral-tokens . && docker run --rm behavioral-tokens`
+`requirements.txt` esiste come riferimento ma pinna `torch` senza suffisso
+`+cpu` (incoerente col lock): preferire sempre `uv sync`.
+
+Oppure via Docker: `docker build -t behavioral-tokens .` — il `CMD` di default
+ora esegue **pytest** (validazione), non il training; il training è esplicito:
+`docker run --rm behavioral-tokens python -m src.train --debug`
 
 ## Workflow (ordine obbligato)
 
@@ -61,6 +73,47 @@ python -m src.intervention --data data/processed/probe.jsonl \
 
 Per la generazione sintetica servono: Ollama attivo su `localhost:11434`
 e/o `OPENROUTER_API_KEY` nell'ambiente (config: `data/generation/generators.json`).
+
+## Provare il modello addestrato (playground interattivo)
+
+`src/try_model.py` carica il modello, incolla un tuo testo nel formato di
+training (`contesto + [COMPRESS] + filler + [RECALL]`) e mostra cosa genera.
+
+```bash
+cd ~/Work/4-BehavioralPairedTokens
+source .venv/bin/activate
+
+# Modello base (nessun adapter) — utile come confronto
+python -m src.try_model
+
+# Modello addestrato: base Qwen + adapter LoRA di un run
+python -m src.try_model --checkpoint results/checkpoints/exp1-stability/best
+
+# Test distanza: inserisce testo tra [COMPRESS] e [RECALL]
+python -m src.try_model --checkpoint results/checkpoints/exp1-stability/best \
+    --filler "Testo intermedio che separa i due token..."
+
+# Output più lungo (default: 200 token)
+python -m src.try_model --checkpoint results/checkpoints/exp1-stability/best \
+    --max-new-tokens 400
+```
+
+Uso: incolla il testo al prompt, **riga vuota** per inviarlo, **Ctrl+C** per uscire.
+
+**Checkpoint disponibili** (`results/checkpoints/<run>/{best,last}`):
+
+| Run | Note |
+|---|---|
+| `exp1-stability` | Run vero di Exp 1 — impara il pattern, ma la ricetta degrada il modello base (vedi `experiments/exp1_stability/README.md`) |
+| `exp1-lora-debug` | Debug run (100 esempi, 2 epoch) — solo verifica pipeline |
+| `smoke-debug`, `smoke2-debug` | Smoke test iniziali, non significativi |
+
+Ogni run salva anche la sua `config.json` completa nella stessa directory.
+
+> ⚠️ Il checkpoint non è un modello standalone: è un **adapter LoRA** che viene
+> applicato sopra `Qwen/Qwen2.5-0.5B` (scaricato/cachato da HuggingFace al primo
+> avvio). Il device viene risolto automaticamente (`cuda` se disponibile, altrimenti
+> `cpu` — sulla GTX 970 il caricamento in VRAM da 4GB funziona per lo 0.5B).
 
 ## Struttura
 

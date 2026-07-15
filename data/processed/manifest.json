@@ -1,0 +1,207 @@
+{
+  "schema_version": 2,
+  "created_at": "2026-07-15T16:06:59+00:00",
+  "git": {
+    "commit": "9caee459cf18ef891ab627b393b743919c2f6d68",
+    "dirty": true
+  },
+  "seed": 42,
+  "split_algorithm": "disjoint-segments-v2",
+  "tokenizer": null,
+  "inputs": {
+    "generated_typeA.jsonl": {
+      "path": "data/raw/generated_typeA.jsonl",
+      "sha256": "948f66d9047f9492e51e50c3d278d333a88bd884843080d5a98a373a7caf6848"
+    },
+    "generated_typeB.jsonl": {
+      "path": "data/raw/generated_typeB.jsonl",
+      "sha256": "ab708fb3308204a56c3995aa3ec0b5c3af7163ec522761320258293e183b35e9"
+    },
+    "generated_typeC.jsonl": {
+      "path": "data/raw/generated_typeC.jsonl",
+      "sha256": "013115a3e6ade97592ed6e168bac32891b7d93b46d8936692cd8358b2b9aaecf"
+    },
+    "public_cnndm_heldout.jsonl": {
+      "path": "data/raw/public_cnndm_heldout.jsonl",
+      "sha256": "10c51cb4aa22e5885ed1093aeadb38c69812b9bae5b1ed5885b7248a4cd8c3fb"
+    },
+    "public_cnndm_train.jsonl": {
+      "path": "data/raw/public_cnndm_train.jsonl",
+      "sha256": "3d0b18bf5c33421340620a468c2bf297e6ad1942ac2f007a9480a3404ffc75ec"
+    },
+    "handwritten.jsonl": {
+      "path": "data/handwritten/handwritten.jsonl",
+      "sha256": "c65fe7a45b3a0cc3d87c1690cb176e7cb297f03bf620d24e02e3958693a48258"
+    }
+  },
+  "splits": {
+    "train": {
+      "path": "data/processed/train.jsonl",
+      "sha256": "b71b3e66de8f600225f27c702f9e02165817fede28f1a6e71e494c2f0c3e4763",
+      "n": 1197,
+      "by_type": {
+        "A": 414,
+        "B": 378,
+        "C": 405
+      },
+      "by_source": {
+        "synthetic": 1197
+      },
+      "by_generator": {
+        "openrouter-deepseek-flash": 420,
+        "openrouter-llama4-scout": 379,
+        "openrouter-mistral-small": 398
+      },
+      "by_label_kind": {
+        "sentiment": 1197
+      },
+      "by_label": {
+        "negative": 622,
+        "positive": 575
+      },
+      "by_distance_target": {
+        "10": 66,
+        "100": 70,
+        "20": 78,
+        "3": 70,
+        "50": 94,
+        "None": 819
+      },
+      "n_mcq": 1196
+    },
+    "eval": {
+      "path": "data/processed/eval.jsonl",
+      "sha256": "9205064140a08c044e009ed0328dc86e1f19a6dc72a3a1bae3af0b2350029e6a",
+      "n": 149,
+      "by_type": {
+        "A": 34,
+        "B": 68,
+        "C": 47
+      },
+      "by_source": {
+        "synthetic": 149
+      },
+      "by_generator": {
+        "openrouter-deepseek-flash": 41,
+        "openrouter-llama4-scout": 55,
+        "openrouter-mistral-small": 53
+      },
+      "by_label_kind": {
+        "sentiment": 149
+      },
+      "by_label": {
+        "negative": 82,
+        "positive": 67
+      },
+      "by_distance_target": {
+        "10": 13,
+        "100": 15,
+        "20": 14,
+        "3": 15,
+        "50": 11,
+        "None": 81
+      },
+      "n_mcq": 149
+    },
+    "test": {
+      "path": "data/processed/test.jsonl",
+      "sha256": "abd19b757d3a1fdde48fdde5a172865d8a18ce20c79ddcc1ec7824ab6606c9ac",
+      "n": 541,
+      "by_type": {
+        "A": 439,
+        "B": 56,
+        "C": 46
+      },
+      "by_source": {
+        "cnn_dailymail": 386,
+        "handwritten": 6,
+        "synthetic": 149
+      },
+      "by_generator": {
+        "human": 392,
+        "openrouter-deepseek-flash": 45,
+        "openrouter-llama4-scout": 46,
+        "openrouter-mistral-small": 58
+      },
+      "by_label_kind": {
+        "None": 386,
+        "sentiment": 151,
+        "topic": 4
+      },
+      "by_label": {
+        "None": 386,
+        "culture": 1,
+        "negative": 92,
+        "positive": 59,
+        "science": 2,
+        "sports": 1
+      },
+      "by_distance_target": {
+        "10": 11,
+        "100": 13,
+        "20": 14,
+        "25": 1,
+        "3": 10,
+        "30": 1,
+        "50": 6,
+        "None": 485
+      },
+      "n_mcq": 541
+    },
+    "probe": {
+      "path": "data/processed/probe.jsonl",
+      "sha256": "f27bb46ee17c0db1aa0acdb3457db4b60a2703f82dbd6e38f03488f96d234f5b",
+      "n": 304,
+      "by_type": {
+        "A": 87,
+        "B": 124,
+        "C": 93
+      },
+      "by_source": {
+        "handwritten": 6,
+        "synthetic": 298
+      },
+      "by_generator": {
+        "human": 6,
+        "openrouter-deepseek-flash": 86,
+        "openrouter-llama4-scout": 101,
+        "openrouter-mistral-small": 111
+      },
+      "by_label_kind": {
+        "sentiment": 300,
+        "topic": 4
+      },
+      "by_label": {
+        "culture": 1,
+        "negative": 174,
+        "positive": 126,
+        "science": 2,
+        "sports": 1
+      },
+      "by_distance_target": {
+        "10": 24,
+        "100": 28,
+        "20": 28,
+        "25": 1,
+        "3": 25,
+        "30": 1,
+        "50": 17,
+        "None": 180
+      },
+      "n_mcq": 304
+    }
+  },
+  "overlap": {
+    "eval/probe": 149,
+    "eval/test": 0,
+    "eval/train": 0,
+    "probe/test": 155,
+    "probe/train": 0,
+    "test/train": 0
+  },
+  "rejected": {
+    "duplicate_synthetic": 5,
+    "duplicate_heldout": 14,
+    "synthetic_also_in_heldout": 0
+  }
+}

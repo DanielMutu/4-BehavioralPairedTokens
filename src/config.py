@@ -71,7 +71,8 @@ class TrainConfig:
         if self.lambda_c > LAMBDA_C_MAX:
             warnings.warn(
                 f"lambda_c={self.lambda_c} exceeds the collapse-safety cap "
-                f"{LAMBDA_C_MAX}; clamping. See CLAUDE.md."
+                f"{LAMBDA_C_MAX}; clamping. See CLAUDE.md.",
+                stacklevel=2,
             )
             self.lambda_c = LAMBDA_C_MAX
         if self.debug:
