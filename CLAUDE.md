@@ -328,8 +328,8 @@ progetto: **`proxy-an`** oppure crediti OpenRouter sufficienti; e verificare que
   - [x] **P0 — Integrazione bottleneck end-to-end** (2026-07-15): `attention_mode` in config/checkpoint; un solo forward (`forward_batch`→`forward_bottlenecked`) per train/eval/probe/intervention/playground; fix distanza (`example_distance`, KeyError su contratto violato), truncation guard in dataset, flush grad-accum; test anti-regressione con modello-spia (mask 4D obbligatoria su ogni entry point) + e2e su Qwen. 51 test verdi. Vedi decisions.md
   - [x] **Ri-pin criterio gating Exp 2** (2026-07-15, pre-registrato a risultati non visti): coorte = tutti i 541 MCQ v2 per example_id; primario = batte la baseline Exp 0 v2 con McNemar p<0.05; secondario = pareggio entro ±3 pt (bootstrap CI); numero separato obbligatorio per CNN/DailyMail out-of-style (n=386); 8 condizioni incluso **anchor-only recall** (controllo relay). Vedi decisions.md
   - [ ] Exp 0 v2 (test completo, per-example records, bootstrap/McNemar)
-  - [ ] **Exp 1b conservativo → IN CORSO** (2026-07-15: primo training reale col bottleneck, `train_config_1b.json`, dati v2; poi gate stabilità con 500 campioni downstream, soglie invariate, output `results/exp1b_stability.json`)
-- [ ] Exp 2 — ablazione distanza (bloccato: richiede Exp 1b PASS)
+  - [x] **Exp 1b conservativo → PASS** (2026-07-16): WikiText ppl **+0.24%** (v0: +24.7%), HellaSwag −0.4 pt, MMLU +1.0 pt su 500 campioni, soglie invariate — il training col bottleneck non degrada il modello. Checkpoint: `exp1b-bottleneck-v2/best`. Vedi decisions.md
+- [ ] **Exp 0 v2 + Exp 2 — SBLOCCATI** ← PROSSIMO PASSO (baseline sull'intera coorte 541, poi le 8+2 condizioni pre-registrate)
 - [ ] Exp 3 — probing hidden states **con tutti i controlli**
 - [ ] Dataset Tipo C + Exp 4 — composizione
 - [ ] Exp 5 — intervento causale (se Exp 3 dà risultati positivi)

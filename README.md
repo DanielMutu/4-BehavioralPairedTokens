@@ -20,9 +20,9 @@ Stato file per file: **[CHANGELOG.md](CHANGELOG.md)**.
 > | Dati v2 | manifest + split disgiunti: train 1197 / eval 149 / test 541 (tutto MCQ) / probe 304 |
 > | P0 percorso condiviso | completato: `attention_mode` in config/checkpoint, mask-spy anti-regressione su ogni entry point |
 > | Toy gate code-recall | **PASS** (tent. 2): acc 0.925 unseen, anchor-removed 0, context-override 1.00, swap 0.90 |
-> | Criterio Exp 2 | pre-registrato sui 541 MCQ v2 (McNemar, ±3 pt, out-of-style separato, 8+1 condizioni) |
-> | **In corso** | **Exp 1b**: training bottleneck completato, gate di stabilità in esecuzione → `results/exp1b_stability.json` |
-> | Prossimi gate | Exp 1b PASS → Exp 0 v2 → Exp 2 |
+> | Criterio Exp 2 | pre-registrato sui 541 MCQ v2 (McNemar, ±3 pt, out-of-style separato, 8 condizioni gating + 2 diagnostiche) |
+> | Exp 1b stabilità | **PASS**: WikiText ppl +0.24% (v0: +24.7%), HellaSwag −0.4 pt, MMLU +1.0 pt (n=500) — il training col bottleneck non degrada il modello |
+> | Prossimi gate | **Exp 0 v2** (baseline su coorte 541) → **Exp 2** |
 >
 > La cronologia completa (inclusi FAIL e incidenti) resta in
 > `CHANGELOG.md` e `experiments/decisions.md`; la meccanica del compressore

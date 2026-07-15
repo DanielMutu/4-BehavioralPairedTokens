@@ -142,6 +142,16 @@ questo file traccia **cosa è cambiato, file per file, e cosa è verificato**.
   attraverso il bottleneck: `train_config_1b.json`, dati v2, gate stabilità
   a 500 campioni in `results/exp1b_stability.json`).
 
+- **Exp 1b: PASS** (2026-07-16): primo training reale attraverso il
+  bottleneck (ricetta conservativa `train_config_1b.json`, dati v2, ~45 min
+  CPU) + gate di stabilità a 500 campioni con soglie invariate dal v0.
+  WikiText ppl **+0.24%** (v0 FAIL: +24.7%), HellaSwag −0.4 pt, MMLU
+  +1.0 pt → PASS su tutti i criteri; nessun collasso della varianza hidden.
+  Checkpoint `exp1b-bottleneck-v2/best`; risultato
+  `results/exp1b_stability.json`. **Exp 0 v2 + Exp 2 sbloccati.**
+  Cautele registrate in decisions.md (delta downstream nel rumore; il PASS
+  attesta stabilità, non recall su testo naturale).
+
 ### Known issues / debito aperto
 
 1. ~~pytest mai rilanciato dopo l'ultimo fix → stato suite ignoto (gate 0)~~

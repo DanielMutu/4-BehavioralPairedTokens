@@ -725,6 +725,37 @@ pre-riallineamento e due spunti nuovi accolti.
   Exp 2 (voce 2026-06-09); monitoraggio varianza hidden (7.5→9.6) da
   proseguire in un eventuale Exp 1c.
 
+## 2026-07-16 — Exp 1b: PASS — il training col bottleneck non degrada il modello
+
+- **Setup**: primo training reale attraverso il bottleneck
+  (`train_config_1b.json`: lr 5e-5, 1 epoca, r=8, α=16, dropout 0.1,
+  `lambda_c=0`, `attention_mode=compress_bottleneck`, dati v2). Training
+  ~45 min CPU (300 step, best eval loss_ce 4.54, varianza hidden 7.5→9.6,
+  nessun collasso). Gate: `run_exp1.py` con **500 campioni downstream**
+  (was 200, nota potenza statistica) e 100 blocchi WikiText, **soglie
+  INVARIATE** dal gate v0. Output: `results/exp1b_stability.json`.
+- **Risultati** (base → trained):
+  WikiText-2 ppl 14.399 → 14.435 (**+0.24%**, gate ≤ +5%);
+  HellaSwag 0.476 → 0.472 (−0.4 pt, gate ≤ 2.0);
+  MMLU 0.280 → 0.290 (+1.0 pt, migliora). **PASS su tutti e tre i criteri.**
+- **Confronto col FAIL v0** (stesse soglie): ppl +24.7% → **+0.24%**
+  (100× meglio), MMLU −4.0 → +1.0. La combinazione ricetta conservativa +
+  bottleneck ha eliminato il catastrophic forgetting. Nota causale onesta:
+  ricetta E architettura sono cambiate insieme rispetto al v0 — non è
+  isolato quale delle due pesi di più (non serve isolarlo per il gate, che
+  chiede solo stabilità).
+- **Cautele da mantenere**: (1) con n=500 la sd binomiale è ~2.2 pt, i
+  delta downstream (−0.4/+1.0) sono nel rumore — il dato forte è la ppl,
+  inequivocabile; (2) il PASS dice che il modello NON si è rotto, NON che
+  il recall funzioni su testo naturale — quella è la domanda di
+  Exp 0 v2 → Exp 2 (v. quarto feedback e mechanism.md §10); (3) il task
+  learning in 1 epoca è modesto (loss 4.54): se Exp 2 desse recall nullo,
+  la contingenza Exp 1c (2-3 epoche + warmup) resta aperta PRIMA di
+  conclusioni sul meccanismo.
+- **Decisione**: **Exp 2 SBLOCCATO**. Prossimo passo obbligato: Exp 0 v2
+  (baseline sull'intera coorte pre-registrata di 541 MCQ, prediction record
+  per esempio), poi Exp 2 con 8 condizioni gating + 2 diagnostiche.
+
 ## Template per nuove decisioni
 
 ```

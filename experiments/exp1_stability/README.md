@@ -153,6 +153,32 @@ gate** (soglie invariate) prima di sbloccare Exp 2.
 
 ---
 
+## 4b. Exp 1b — la ricetta corretta: ✅ PASS (2026-07-16)
+
+Primo training reale **attraverso il bottleneck** (pipeline v2):
+`train_config_1b.json` — lr 5e-5 (was 2e-4), 1 epoca (was 3), r=8 (was 16),
+dropout 0.1, `attention_mode=compress_bottleneck`, dati v2 disgiunti.
+Gate identico al v0 (soglie MAI toccate), potenza aumentata: **500 campioni
+downstream** (was 200). Risultati (`results/exp1b_stability.json`):
+
+| | base | trained | delta (trained − base) | gate | v0 (stessa soglia) |
+|---|---|---|---|---|---|
+| WikiText-2 ppl | 14.399 | 14.435 | **+0.24%** | ✅ (≤ +5%) | ❌ +24.7% |
+| HellaSwag acc | 0.476 | 0.472 | −0.4 pt | ✅ (calo ≤ 2.0) | ✅ +1.5 pt |
+| MMLU acc | 0.280 | 0.290 | **+1.0 pt** (migliora) | ✅ (calo ≤ 2.0) | ❌ −4.0 pt |
+
+**Verdetto: ✅ PASS — Exp 2 sbloccato.**
+
+Note oneste: (1) ricetta e architettura sono cambiate insieme rispetto al
+v0 → non è isolato quale pesi di più (il gate chiede solo stabilità);
+(2) con n=500 la sd binomiale è ~2.2 pt: i delta downstream sono nel
+rumore, il dato forte è la perplexity; (3) questo PASS attesta che il
+modello non si è rotto — se il recall funzioni su testo naturale è la
+domanda di Exp 0 v2 → Exp 2. Training: ~45 min CPU, 300 step, best eval
+loss_ce 4.54, varianza hidden 7.5→9.6 (nessun collasso).
+
+---
+
 ## 5. Come riprodurre
 
 ```bash

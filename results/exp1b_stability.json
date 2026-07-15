@@ -1,0 +1,31 @@
+{
+  "model": "Qwen/Qwen2.5-0.5B",
+  "checkpoint": "results/checkpoints/exp1b-bottleneck-v2/best",
+  "base": {
+    "wikitext2_perplexity": 14.399330808161526,
+    "hellaswag_accuracy": 0.476,
+    "n_hellaswag": 500,
+    "mmlu_accuracy": 0.28,
+    "n_mmlu": 500
+  },
+  "trained": {
+    "wikitext2_perplexity": 14.434547816947228,
+    "hellaswag_accuracy": 0.472,
+    "n_hellaswag": 500,
+    "mmlu_accuracy": 0.29,
+    "n_mmlu": 500
+  },
+  "verdict": {
+    "wikitext2_ppl_rel_increase": 0.0024,
+    "hellaswag_drop_pts": 0.4,
+    "mmlu_drop_pts": -1.0,
+    "ppl_ok": true,
+    "hellaswag_ok": true,
+    "mmlu_ok": true,
+    "PASS": true,
+    "thresholds": {
+      "max_ppl_rel_increase": 0.05,
+      "max_downstream_drop_pts": 2.0
+    }
+  }
+}
