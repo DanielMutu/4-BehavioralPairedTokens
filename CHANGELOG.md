@@ -4,15 +4,18 @@ Il progetto non ha release: le voci seguono le milestone sperimentali e i branch
 Le decisioni con motivazione completa stanno in `experiments/decisions.md`;
 questo file traccia **cosa è cambiato, file per file, e cosa è verificato**.
 
-## [Unreleased] — branch `feat/true-compress-bottleneck-v2` (avviato 2026-07-15)
+## Pipeline v2 (2026-07-15 → in corso) — sviluppata su `feat/true-compress-bottleneck-v2`, unita in `main` (PR #1)
 
-> ⚠️ **Stato: work-in-progress interrotto a metà.** La sessione autonoma che
-> eseguiva il piano v2 è morta per crediti OpenRouter esauriti subito dopo un
-> fix a `tests/test_bottleneck.py` mai ri-verificato. **La suite di test NON è
-> garantita verde.** Parte del codice è stata generata col proxy in modalità
-> OpenRouter (backend potenzialmente DeepSeek) e richiede review prima di
-> essere considerata affidabile. Dettagli: `experiments/decisions.md`
-> (2026-07-15) e sezione "Pipeline v2" in `CLAUDE.md`.
+> **Stato corrente**: vedere lo snapshot in cima a `README.md` (fonte unica
+> per lo stato presente). Questo file è la cronologia: le note di allerta
+> nelle voci sottostanti (es. "suite non garantita verde", "mai eseguito")
+> descrivono lo stato **al momento della voce** e sono state via via risolte
+> dalle voci successive — restano qui perché la storia non si riscrive.
+>
+> *Nota storica sull'avvio*: la prima sessione autonoma del 2026-07-15 si
+> interruppe a metà (crediti OpenRouter) con la suite in stato ignoto; tutto
+> il codice di quella sessione è stato poi riveduto, testato e verificato
+> (v. voci "Fixed" e decisions.md).
 
 ### Added
 

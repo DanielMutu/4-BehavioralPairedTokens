@@ -9,20 +9,24 @@ Contesto completo, ipotesi, letteratura e regole: **[CLAUDE.md](CLAUDE.md)**.
 Log decisioni: **[experiments/decisions.md](experiments/decisions.md)**.
 Stato file per file: **[CHANGELOG.md](CHANGELOG.md)**.
 
-> **Stato verificato (2026-07-15, sera)** — pipeline v2 su `main`:
-> - Test: **40 passed** (34 unit + 6 integration Qwen), ruff pulito, CI verde
-> - Moduli v2 (`data_contract`, `bottleneck`): review completata, mask 4D
->   **verificata su Qwen reale** (zero leak)
-> - Dati v2: build con manifest, split disgiunti (train=1197/eval=149/
->   test=541/probe=304, test tutto MCQ-annotato)
-> - Toy gate code-recall: tent. 1 FAIL formale ma controlli causali PASS;
->   tent. 2 in corso
-> - **P0 completato**: un solo percorso bottleneck per
->   train/eval/probe/intervention (`attention_mode` in config/checkpoint),
->   test anti-regressione con mask-spy su ogni entry point — 51 test verdi
-> - **Gate bloccanti attuali**: toy gate PASS + ri-pin criterio Exp 2,
->   poi Exp 1b
-> - Dettagli: `CLAUDE.md` → "Pipeline v2", `CHANGELOG.md`, `experiments/decisions.md`
+> **Stato verificato — snapshot corrente (2026-07-16)** · branch: `main`
+> (la pipeline v2 è stata sviluppata su `feat/true-compress-bottleneck-v2`
+> e unita in `main` con la PR #1)
+>
+> | Cosa | Stato |
+> |---|---|
+> | Suite test | **51 passed** (44 unit + 7 integration Qwen), ruff pulito, CI verde |
+> | Mask 4D bottleneck | verificata su Qwen reale: onorata, zero leak |
+> | Dati v2 | manifest + split disgiunti: train 1197 / eval 149 / test 541 (tutto MCQ) / probe 304 |
+> | P0 percorso condiviso | completato: `attention_mode` in config/checkpoint, mask-spy anti-regressione su ogni entry point |
+> | Toy gate code-recall | **PASS** (tent. 2): acc 0.925 unseen, anchor-removed 0, context-override 1.00, swap 0.90 |
+> | Criterio Exp 2 | pre-registrato sui 541 MCQ v2 (McNemar, ±3 pt, out-of-style separato, 8+1 condizioni) |
+> | **In corso** | **Exp 1b**: training bottleneck completato, gate di stabilità in esecuzione → `results/exp1b_stability.json` |
+> | Prossimi gate | Exp 1b PASS → Exp 0 v2 → Exp 2 |
+>
+> La cronologia completa (inclusi FAIL e incidenti) resta in
+> `CHANGELOG.md` e `experiments/decisions.md`; la meccanica del compressore
+> in `docs/mechanism.md`.
 
 ## Setup
 
