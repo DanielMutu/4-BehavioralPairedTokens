@@ -349,8 +349,8 @@ progetto: **`proxy-an`** oppure crediti OpenRouter sufficienti; e verificare que
   - [x] Ambiente riproducibile: `pyproject.toml` + `uv.lock` (torch cpu) + Dockerfile + CI
   - [x] **Suite test verde** (2026-07-15: 31 passed + ruff pulito; il test rosso era mal posto — TinyAttention a 1 layer non ha alcuna rotta contesto→post-anchor, portato a 2; vedi decisions.md)
   - [x] **Review del codice generato via proxy OpenRouter** (2026-07-15: 5 fix + claim mask 4D **verificata su Qwen reale** con 6 test integration, zero leak; vedi decisions.md)
-  - [ ] **Build dati v2: fixture → dati reali + manifest, zero overlap verificato** ← PROSSIMO PASSO
-  - [ ] Toy gate bottleneck (code-recall, 6 controlli causali)
+  - [x] **Build dati v2** (2026-07-15): fixture gate + determinismo verificati; train=1197 / eval=149 / test=541 (tutti MCQ-annotati) / probe=304, zero overlap train↔tutto e eval↔test; manifest versionato; annotazioni CNN salvate nei raw via backfill; v0 preservato in `data/processed_v0/` (hash in git). Vedi decisions.md
+  - [ ] **Toy gate bottleneck (code-recall, 6 controlli causali)** ← PROSSIMO PASSO
   - [ ] Ri-pin criterio gating Exp 2 (test set 540, split v2) in decisions.md
   - [ ] Exp 0 v2 (test completo, per-example records, bootstrap/McNemar)
   - [ ] Exp 1b conservativo (lr 5e-5, 1 epoca, r=8) + mini-gate stabilità

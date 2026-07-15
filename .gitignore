@@ -10,6 +10,11 @@ data/raw/*
 data/processed/*
 !data/raw/.gitkeep
 !data/processed/.gitkeep
+# v2: the dataset manifest (hashes/counts/provenance) IS versioned
+!data/processed/manifest.json
+# v0 split backups stay local; only their hashes are versioned
+data/processed_v0/*
+!data/processed_v0/hashes.json
 results/runs/
 results/checkpoints/
 *.safetensors

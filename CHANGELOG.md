@@ -77,13 +77,24 @@ questo file traccia **cosa è cambiato, file per file, e cosa è verificato**.
   reale, zero leak attorno al bottleneck**. Suite: 40 passed.
   Dettagli: decisions.md 2026-07-15.
 
+- **Build dati v2 eseguita** (2026-07-15): fixture gate (overlap zero,
+  determinismo byte-identico su due run) e build reale —
+  train=1197 / eval=149 / test=541 / probe=304, zero overlap
+  train↔{eval,test,probe} e eval↔test, test 541/541 MCQ-annotato.
+  Le 386 annotazioni CNN (che vivevano solo nel test v0) sono state
+  backfillate nei raw via `content_id`; v0 preservato in
+  `data/processed_v0/` (SHA-256 versionati in `hashes.json`); manifest
+  versionato (`data/processed/manifest.json`, eccezione .gitignore).
+  Decisione: TUTTI i CNN restano nel test (stile held-out), incluso
+  `public_cnndm_train.jsonl`. Dettagli: decisions.md 2026-07-15.
+
 ### Known issues / debito aperto
 
 1. ~~pytest mai rilanciato dopo l'ultimo fix → stato suite ignoto (gate 0)~~
    **risolto 2026-07-15**: 31 passed, lint pulito (v. Fixed).
-2. `data_contract.py` e `prepare_dataset.py` v2 mai eseguiti nemmeno su fixture.
-   *(aggiornamento: i moduli sono ora coperti da review + 40 test, ma la
-   build su fixture/dati reali resta il prossimo gate)*
+2. ~~`data_contract.py` e `prepare_dataset.py` v2 mai eseguiti nemmeno su
+   fixture.~~ **risolto 2026-07-15**: review + 40 test + build fixture/reale
+   eseguite e verificate (v. Fixed).
 3. `requirements.txt` incoerente con `uv.lock` su torch.
 4. Codice generato via backend OpenRouter → review integrale richiesta di
    `data_contract.py` e `bottleneck.py` (un errore di sintassi già trovato).

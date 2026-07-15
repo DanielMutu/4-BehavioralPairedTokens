@@ -376,6 +376,48 @@ OpenRouter (obbligo registrato il 2026-07-15). Esito: **impianto corretto,
 - **Esito suite**: 40 passed (34 unit + 6 integration), ruff pulito.
   Prossimo gate: build dati v2 su fixture (`prepare_dataset.py`).
 
+## 2026-07-15 — Build dati v2 eseguita: split disgiunti, manifest, annotazioni salvate
+
+Gate "build dati v2" del piano: PASS. Sequenza eseguita e verificata:
+
+- **Fixture gate**: build end-to-end su campione di righe raw reali (60
+  sintetiche + 12 CNN + 6 handwritten) → conteggi conservati, overlap
+  train/eval/test tutti a zero, `--check` verde, e **due build consecutive
+  producono file byte-identici** (determinismo).
+- **Salvaguardia v0**: split v0 copiati in `data/processed_v0/` con SHA-256
+  registrati in `hashes.json` (versionato; i dati restano locali come da
+  policy "script versionati, non dati"). Hash train v0:
+  `0210448d…`, test v0: `9fe2cf4f…` (completi nel file).
+- **Backfill annotazioni MCQ nei raw** (con backup `.pre_backfill.bak`):
+  le 386 annotazioni CNN/DailyMail vivevano SOLO nel `test.jsonl` v0 — una
+  rebuild ingenua dai raw le avrebbe perse. Riportate nei due file raw via
+  `content_id` (che per design non cambia con le annotazioni): 400/400
+  righe agganciate (386 uniche + 14 duplicati poi dedupe). Ora i raw sono
+  autosufficienti per qualsiasi rebuild futura.
+- **Build reale** (`disjoint-segments-v2`, seed 42):
+  train=1197 (solo sintetico), eval=149, test=541 (386 CNN + 6 handwritten
+  + 149 sintetici in-style), probe=304. Overlap: train↔{eval,test,probe}=0,
+  eval↔test=0; probe↔{eval,test}>0 by design (vista derivata).
+  **MCQ: 541/541 righe di test annotate.** Scarti: 5 dup sintetici,
+  14 dup CNN, 0 incroci. Manifest: `data/processed/manifest.json`
+  (versionato via eccezione .gitignore).
+- **Decisione — tutti i CNN nel test, incluso `public_cnndm_train.jsonl`**:
+  il file era stato importato con ruolo "train replay" (mai usato), ma
+  instradare 300 righe CNN nel training distruggerebbe la proprietà
+  "stile held-out" del test che distingue comportamento da stile. Finché il
+  protocollo usa CNN come stile held-out, tutto CNN va nel test (stesso
+  comportamento v0, ora esplicito). Alternativa scartata: rispettare il
+  ruolo d'importazione — riconsiderabile solo se si introdurrà replay di
+  dominio, che comunque dovrà usare testo generico (WikiText/C4), non CNN.
+- **Nota**: il manifest registra `git.commit=9caee45, dirty=true` — è lo
+  stato al momento della build (il commit che versiona il manifest è per
+  forza successivo). L'integrità dei dati è garantita dagli SHA-256 degli
+  split, non dal flag git.
+- **Conseguenza per il gating Exp 2** (già previsto): il test v2 ha 541
+  righe tutte MCQ-annotate; i 149 sintetici in-style sono righe MAI viste
+  in training (in v0 erano 148 righe riusate dal train). La baseline Exp 0
+  va ricalcolata su questo set (prossima voce di pre-registrazione).
+
 ## Template per nuove decisioni
 
 ```
