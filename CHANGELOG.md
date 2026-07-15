@@ -88,6 +88,15 @@ questo file traccia **cosa è cambiato, file per file, e cosa è verificato**.
   Decisione: TUTTI i CNN restano nel test (stile held-out), incluso
   `public_cnndm_train.jsonl`. Dettagli: decisions.md 2026-07-15.
 
+- **Toy gate bottleneck — tentativo 1** (2026-07-15, post-merge in main):
+  nuovo `experiments/toy_bottleneck/` (runner con soglie pre-registrate,
+  activation patching multi-layer, README). Esito: **FAIL formale**
+  (bottleneck_acc 0.375 < 0.90) con **controlli causali PASS** (untrained
+  0.000, anchor-removed 0.000, context-override 0.95) → meccanismo
+  validato, il run è finito a metà transizione di fase. Tentativo 2 in
+  corso (400 codici, 30 epoche, soglie invariate). Risultato:
+  `results/toy_bottleneck.json` (+ `.log`).
+
 ### Known issues / debito aperto
 
 1. ~~pytest mai rilanciato dopo l'ultimo fix → stato suite ignoto (gate 0)~~

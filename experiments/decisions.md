@@ -418,6 +418,36 @@ Gate "build dati v2" del piano: PASS. Sequenza eseguita e verificata:
   in training (in v0 erano 148 righe riusate dal train). La baseline Exp 0
   va ricalcolata su questo set (prossima voce di pre-registrazione).
 
+## 2026-07-15 — Toy gate, tentativo 1: FAIL formale, meccanismo validato
+
+- **Setup**: 160/40 codici a 4 cifre, LoRA r=8 q_proj+v_proj, lr=1e-3,
+  20 epoche, bottleneck ON, soglie pre-registrate in `run_toy.py`
+  (`results/toy_bottleneck.json`, ~21 min CPU).
+- **Esito**: FAIL sul criterio 1 (`bottleneck_acc` 0.375 < 0.90), PASS sui
+  tre controlli causali: untrained 0.000 (≤0.05), anchor-removed 0.000
+  (≤0.05), context_override_rate 0.95 (≥0.90); swap_rate 0.45 (info,
+  target 0.5). Come da protocollo il FAIL si documenta e non si aggira:
+  nessuna soglia viene toccata.
+- **Lettura**: il fallimento è di quantità di training, non di meccanismo.
+  La loss resta inchiodata a 1.842 = 4·ln(10)/5 (formato imparato, cifre a
+  caso) fino all'epoca ~6, poi transizione di fase fino a 0.22 con eval in
+  salita (picco 0.55 a ep.19): il run finisce a metà salita. Train subset
+  0.70 vs eval 0.375 → memorizzazione parziale, servono più codici per
+  forzare la generalizzazione del routing.
+- **Evidenze causali già acquisite** (indipendenti dal FAIL):
+  (a) col patching, il 95% delle generazioni ignora il contesto reale del
+  prompt e il 45% produce esattamente il codice dell'anchor trapiantato —
+  la memoria vive nell'hidden state dell'anchor;
+  (b) `full_context_acc = 0`: il modello addestrato col bottleneck non sa
+  più usare l'attention libera — si è specializzato sul canale-anchor.
+- **Decisione**: tentativo 2 con 400 codici train (was 160) e 30 epoche
+  (was 20), ricetta e soglie invariate. Motivo della scelta dati>epoche:
+  l'overfitting parziale indica che il collo è la varietà, non il tempo.
+- **Nota infrastruttura**: run 1 eseguito mentre lo script veniva
+  parametrizzato (mode/targets/n-train CLI); il processo in memoria non è
+  stato toccato. `run_toy.py` ora supporta anche il run di controllo
+  full-context per la condizione "token, unmasked" di Exp 2.
+
 ## Template per nuove decisioni
 
 ```
