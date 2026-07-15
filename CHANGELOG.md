@@ -132,6 +132,13 @@ questo file traccia **cosa è cambiato, file per file, e cosa è verificato**.
   incluso **anchor-only recall** (controllo relay). Sostituisce la voce v0
   su 154 MCQ. Dettagli: decisions.md 2026-07-15.
 
+- **Toy gate — tentativo 2: PASS** (2026-07-15): 400 codici/30 epoche,
+  soglie del tent. 1 invariate. bottleneck_acc 0.925 (unseen), anchor
+  removed 0.000, context_override 1.00, swap_rate 0.90 → l'anchor determina
+  il recall. Gate bottleneck chiuso; lanciato **Exp 1b** (primo training
+  attraverso il bottleneck: `train_config_1b.json`, dati v2, gate stabilità
+  a 500 campioni in `results/exp1b_stability.json`).
+
 ### Known issues / debito aperto
 
 1. ~~pytest mai rilanciato dopo l'ultimo fix → stato suite ignoto (gate 0)~~

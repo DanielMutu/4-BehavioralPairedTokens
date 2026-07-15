@@ -350,13 +350,11 @@ progetto: **`proxy-an`** oppure crediti OpenRouter sufficienti; e verificare que
   - [x] **Suite test verde** (2026-07-15: 31 passed + ruff pulito; il test rosso era mal posto — TinyAttention a 1 layer non ha alcuna rotta contesto→post-anchor, portato a 2; vedi decisions.md)
   - [x] **Review del codice generato via proxy OpenRouter** (2026-07-15: 5 fix + claim mask 4D **verificata su Qwen reale** con 6 test integration, zero leak; vedi decisions.md)
   - [x] **Build dati v2** (2026-07-15): fixture gate + determinismo verificati; train=1197 / eval=149 / test=541 (tutti MCQ-annotati) / probe=304, zero overlap train↔tutto e eval↔test; manifest versionato; annotazioni CNN salvate nei raw via backfill; v0 preservato in `data/processed_v0/` (hash in git). Vedi decisions.md
-  - [ ] **Toy gate bottleneck (code-recall, 6 controlli causali)** ← IN CORSO
-    - tentativo 1 (2026-07-15): FAIL formale (acc 0.375 < 0.90) ma controlli causali PASS (untrained 0, anchor-removed 0, context-override 0.95, swap 0.45) — meccanismo validato, run finito a metà transizione; vedi `experiments/toy_bottleneck/README.md`
-    - tentativo 2 in corso: 400 codici train, 30 epoche, soglie invariate
+  - [x] **Toy gate bottleneck → PASS** (2026-07-15, tentativo 2: 400 codici, soglie invariate): bottleneck_acc **0.925** su codici mai visti, anchor-removed 0, context-override **1.00**, swap **0.90** — l'hidden state di `[COMPRESS]` determina il recall. Tent. 1 (FAIL formale, meccanismo ok) documentato in `experiments/toy_bottleneck/README.md`
   - [x] **P0 — Integrazione bottleneck end-to-end** (2026-07-15): `attention_mode` in config/checkpoint; un solo forward (`forward_batch`→`forward_bottlenecked`) per train/eval/probe/intervention/playground; fix distanza (`example_distance`, KeyError su contratto violato), truncation guard in dataset, flush grad-accum; test anti-regressione con modello-spia (mask 4D obbligatoria su ogni entry point) + e2e su Qwen. 51 test verdi. Vedi decisions.md
   - [x] **Ri-pin criterio gating Exp 2** (2026-07-15, pre-registrato a risultati non visti): coorte = tutti i 541 MCQ v2 per example_id; primario = batte la baseline Exp 0 v2 con McNemar p<0.05; secondario = pareggio entro ±3 pt (bootstrap CI); numero separato obbligatorio per CNN/DailyMail out-of-style (n=386); 8 condizioni incluso **anchor-only recall** (controllo relay). Vedi decisions.md
   - [ ] Exp 0 v2 (test completo, per-example records, bootstrap/McNemar)
-  - [ ] Exp 1b conservativo (lr 5e-5, 1 epoca, r=8) + mini-gate stabilità
+  - [ ] **Exp 1b conservativo → IN CORSO** (2026-07-15: primo training reale col bottleneck, `train_config_1b.json`, dati v2; poi gate stabilità con 500 campioni downstream, soglie invariate, output `results/exp1b_stability.json`)
 - [ ] Exp 2 — ablazione distanza (bloccato: richiede Exp 1b PASS)
 - [ ] Exp 3 — probing hidden states **con tutti i controlli**
 - [ ] Dataset Tipo C + Exp 4 — composizione

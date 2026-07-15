@@ -88,7 +88,31 @@ training*, non di meccanismo:
 cifre (0.70 su train vs 0.375 su eval = memorizzazione parziale) e 20
 epoche finiscono a transizione appena iniziata.
 
-### Tentativo 2 (in corso)
+### Tentativo 2 (2026-07-15) — ✅ PASS
 
-400 train / 40 eval, 30 epoche max, stessa ricetta e stesse soglie
-(`results/toy_bottleneck_try2.json`). Nessuna soglia è stata modificata.
+400 train / 40 eval, 30 epoche (~76 min CPU), stessa ricetta e stesse soglie
+del tentativo 1 (`results/toy_bottleneck_try2.json`). Nessuna soglia toccata.
+
+| Controllo | Valore | Gate | Esito |
+|---|---|---|---|
+| `bottleneck_acc` (eval, mai visti) | **0.925** | ≥ 0.90 | ✅ |
+| `untrained_acc` (dal tent. 1, invariato) | 0.000 | ≤ 0.05 | ✅ |
+| `anchor_removed_acc` | 0.000 | ≤ 0.05 | ✅ |
+| `context_override_rate` (patching) | **1.00** | ≥ 0.90 | ✅ |
+| `swap_rate` (patching) | **0.90** | info (≥ 0.5) | ✅ |
+| `full_context_acc` | 0.000 | info | come tent. 1 |
+| `bottleneck_acc` su train | 1.00 | — | — |
+
+**Verdetto: PASS su tutti i criteri pre-registrati.** La diagnosi del
+tentativo 1 era corretta: con 2.5× dati la stessa ricetta generalizza
+(92.5% su codici mai visti, chance ≈ 10⁻⁴).
+
+La prova causale è quella che conta: con l'anchor oscurato il recall crolla
+a zero; nel trapianto degli hidden state (`AnchorPatcher`, tutte le
+profondità) il contesto reale del prompt viene ignorato nel **100%** dei
+casi e nel **90%** la generazione produce esattamente il codice
+dell'esempio da cui proviene l'anchor. La memoria vive nell'hidden state di
+`[COMPRESS]` — non è correlazione, è il canale.
+
+**Conseguenza**: gate bottleneck chiuso → via libera a Exp 1b
+(ricetta conservativa, `train_config_1b.json`).

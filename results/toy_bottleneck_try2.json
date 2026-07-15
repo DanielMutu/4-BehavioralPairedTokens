@@ -1,0 +1,217 @@
+{
+  "seed": 42,
+  "mode": "compress_bottleneck",
+  "n_train": 400,
+  "n_eval": 40,
+  "config": {
+    "lora_r": 8,
+    "lora_alpha": 16,
+    "lora_dropout": 0.1,
+    "lora_targets": [
+      "q_proj",
+      "v_proj"
+    ],
+    "lr": 0.001,
+    "batch_size": 8,
+    "epochs_max": 30
+  },
+  "train_seconds": 4558.7,
+  "history": [
+    {
+      "epoch": 1,
+      "loss": 2.428958523273468,
+      "eval_tf_acc": 0.0,
+      "seconds": 150.7
+    },
+    {
+      "epoch": 2,
+      "loss": 1.8367942881584167,
+      "eval_tf_acc": 0.0,
+      "seconds": 152.3
+    },
+    {
+      "epoch": 3,
+      "loss": 1.6473100662231446,
+      "eval_tf_acc": 0.0,
+      "seconds": 150.3
+    },
+    {
+      "epoch": 4,
+      "loss": 1.5319909524917603,
+      "eval_tf_acc": 0.025,
+      "seconds": 156.1
+    },
+    {
+      "epoch": 5,
+      "loss": 1.4324238777160645,
+      "eval_tf_acc": 0.0,
+      "seconds": 150.7
+    },
+    {
+      "epoch": 6,
+      "loss": 1.428011646270752,
+      "eval_tf_acc": 0.0,
+      "seconds": 147.9
+    },
+    {
+      "epoch": 7,
+      "loss": 1.4276453495025634,
+      "eval_tf_acc": 0.0,
+      "seconds": 148.1
+    },
+    {
+      "epoch": 8,
+      "loss": 1.400473506450653,
+      "eval_tf_acc": 0.0,
+      "seconds": 147.7
+    },
+    {
+      "epoch": 9,
+      "loss": 1.3763802170753479,
+      "eval_tf_acc": 0.0,
+      "seconds": 148.1
+    },
+    {
+      "epoch": 10,
+      "loss": 1.3679756808280945,
+      "eval_tf_acc": 0.025,
+      "seconds": 151.4
+    },
+    {
+      "epoch": 11,
+      "loss": 1.1365549957752228,
+      "eval_tf_acc": 0.0,
+      "seconds": 154.0
+    },
+    {
+      "epoch": 12,
+      "loss": 0.8643491816520691,
+      "eval_tf_acc": 0.05,
+      "seconds": 155.9
+    },
+    {
+      "epoch": 13,
+      "loss": 0.6835641098022461,
+      "eval_tf_acc": 0.3,
+      "seconds": 176.0
+    },
+    {
+      "epoch": 14,
+      "loss": 0.5356700050830842,
+      "eval_tf_acc": 0.2,
+      "seconds": 163.7
+    },
+    {
+      "epoch": 15,
+      "loss": 0.4004948925971985,
+      "eval_tf_acc": 0.4,
+      "seconds": 153.3
+    },
+    {
+      "epoch": 16,
+      "loss": 0.3472093886137009,
+      "eval_tf_acc": 0.5,
+      "seconds": 152.0
+    },
+    {
+      "epoch": 17,
+      "loss": 0.25467210069298746,
+      "eval_tf_acc": 0.575,
+      "seconds": 149.9
+    },
+    {
+      "epoch": 18,
+      "loss": 0.19461074374616147,
+      "eval_tf_acc": 0.725,
+      "seconds": 155.1
+    },
+    {
+      "epoch": 19,
+      "loss": 0.15290005408227444,
+      "eval_tf_acc": 0.7,
+      "seconds": 149.4
+    },
+    {
+      "epoch": 20,
+      "loss": 0.11858824215829372,
+      "eval_tf_acc": 0.625,
+      "seconds": 149.6
+    },
+    {
+      "epoch": 21,
+      "loss": 0.12904683336615563,
+      "eval_tf_acc": 0.775,
+      "seconds": 149.7
+    },
+    {
+      "epoch": 22,
+      "loss": 0.11217147275805474,
+      "eval_tf_acc": 0.85,
+      "seconds": 149.6
+    },
+    {
+      "epoch": 23,
+      "loss": 0.09312915207818151,
+      "eval_tf_acc": 0.75,
+      "seconds": 149.7
+    },
+    {
+      "epoch": 24,
+      "loss": 0.06302208481822164,
+      "eval_tf_acc": 0.75,
+      "seconds": 149.9
+    },
+    {
+      "epoch": 25,
+      "loss": 0.0702540212823078,
+      "eval_tf_acc": 0.825,
+      "seconds": 149.3
+    },
+    {
+      "epoch": 26,
+      "loss": 0.06273462732322514,
+      "eval_tf_acc": 0.875,
+      "seconds": 149.9
+    },
+    {
+      "epoch": 27,
+      "loss": 0.035964978836709634,
+      "eval_tf_acc": 0.9,
+      "seconds": 149.6
+    },
+    {
+      "epoch": 28,
+      "loss": 0.04703883799142204,
+      "eval_tf_acc": 0.925,
+      "seconds": 149.8
+    },
+    {
+      "epoch": 29,
+      "loss": 0.028620522545534186,
+      "eval_tf_acc": 0.9,
+      "seconds": 149.3
+    },
+    {
+      "epoch": 30,
+      "loss": 0.0241003855978488,
+      "eval_tf_acc": 0.925,
+      "seconds": 149.7
+    }
+  ],
+  "untrained_acc": null,
+  "bottleneck_acc": 0.925,
+  "bottleneck_acc_train_subset": 1.0,
+  "full_context_acc": 0.0,
+  "anchor_removed_acc": 0.0,
+  "patching": {
+    "context_override_rate": 1.0,
+    "swap_rate": 0.9,
+    "n_pairs": 20
+  },
+  "gate": {
+    "bottleneck_acc>=0.90": true,
+    "anchor_removed_acc<=0.05": true,
+    "context_override_rate>=0.90": true
+  },
+  "PASS": true
+}

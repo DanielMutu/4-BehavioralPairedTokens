@@ -598,6 +598,33 @@ di qualsiasi risultato Exp 2. **Queste soglie non si ritoccano.**
   porta alla razionalizzazione a posteriori — lo stesso principio della
   voce 2026-06-09, aggiornato ai dati v2.
 
+## 2026-07-15 — Toy gate tentativo 2: PASS su tutte le soglie pre-registrate
+
+- **Setup**: identico al tentativo 1 tranne 400 codici train (was 160) e 30
+  epoche (was 20); soglie invariate. ~76 min CPU
+  (`results/toy_bottleneck_try2.json`).
+- **Esito**: PASS. bottleneck_acc **0.925** su 40 codici mai visti (soglia
+  0.90, chance ~1e-4); anchor_removed 0.000; context_override_rate **1.00**;
+  swap_rate **0.90** (dal 0.45 del tent. 1); untrained 0.000 (misurato al
+  tent. 1, stesso modello base). Train subset 1.00.
+- **Lettura causale**: il trapianto dell'anchor (tutte le profondità) ora
+  produce il codice dell'esempio sorgente nel 90% dei casi ignorando sempre
+  il contesto del prompt ospite → l'hidden state di `[COMPRESS]` non solo
+  contiene l'informazione: la DETERMINA. `full_context_acc` resta 0 — il
+  modello addestrato col bottleneck non usa l'attention libera; il canale
+  appreso è quello vincolato.
+- **Diagnosi tent. 1 confermata**: era un problema di quantità (varietà dei
+  codici), non di meccanismo. La transizione di fase si è ripresentata con
+  la stessa firma (plateau a ~4·ln10/5, poi discesa).
+- **Decisione**: gate bottleneck CHIUSO. Lanciato Exp 1b con la ricetta
+  conservativa pre-registrata (`train_config_1b.json`: lr 5e-5, 1 epoca,
+  r=8, α=16, dropout 0.1, lambda_c 0, attention_mode compress_bottleneck,
+  dati v2) — primo training reale attraverso il bottleneck. Pre-flight dati
+  superato (1197+149 righe, max 335 token ≤ 384). Il gate di stabilità
+  (`run_exp1.py`, soglie INVARIATE: ppl ≤ +5%, calo ≤ 2 pt) girerà con
+  **500 campioni downstream** (was 200) per la nota di potenza statistica;
+  output separato in `results/exp1b_stability.json` (il v0 resta intatto).
+
 ## Template per nuove decisioni
 
 ```
