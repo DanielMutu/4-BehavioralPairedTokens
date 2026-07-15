@@ -104,13 +104,21 @@ risolvibile con `datasets 5.0.0` / `huggingface_hub 1.18.0`
 
 ### Risultati (2026-06-14, `results/exp1_stability.json`)
 
-| | base | trained | delta | gate |
+| | base | trained | delta (trained − base) | gate |
 |---|---|---|---|---|
-| WikiText-2 ppl | 14.399 | 17.956 | **+24.7%** | ❌ FAIL (≤ +5%) |
-| HellaSwag acc | 0.460 | 0.475 | −1.50 pt (migliora) | ✅ ok (≤ 2.0) |
-| MMLU acc | 0.275 | 0.235 | **+4.00 pt** | ❌ FAIL (≤ 2.0) |
+| WikiText-2 ppl | 14.399 | 17.956 | **+24.7%** | ❌ FAIL (aumento ≤ +5%) |
+| HellaSwag acc | 0.460 | 0.475 | +1.5 pt (migliora) | ✅ ok (calo ≤ 2.0 pt) |
+| MMLU acc | 0.275 | 0.235 | **−4.0 pt** | ❌ FAIL (calo ≤ 2.0 pt) |
 
 **Verdetto: ❌ FAIL — la ricetta di fine-tuning va corretta prima di Exp 2.**
+
+> **Nota sulla potenza statistica (aggiunta 2026-07-15).** Con 200 campioni,
+> la deviazione standard binomiale di una singola accuracy è ~3 punti: i delta
+> di HellaSwag (+1.5) e MMLU (−4.0) sono vicini al rumore, e la soglia di gate
+> (2.0 pt) è più stretta della precisione della misura. Il FAIL resta solido
+> perché la perplexity +24.7% è inequivocabile; il prossimo gate downstream
+> (Exp 1b) va però dato con più campioni o con un test appaiato (McNemar sugli
+> stessi item), altrimenti si rischia un PASS/FAIL spurio sul criterio (2).
 
 #### Interpretazione
 

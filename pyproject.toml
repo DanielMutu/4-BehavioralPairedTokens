@@ -1,0 +1,58 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "behavioral-paired-tokens"
+version = "0.2.0"
+description = "True-bottleneck COMPRESS/RECALL experiments for small language models"
+readme = "README.md"
+requires-python = ">=3.11,<3.12"
+dependencies = [
+  "accelerate==1.13.0",
+  "datasets==5.0.0",
+  "matplotlib==3.10.8",
+  "numpy==2.4.6",
+  "peft==0.19.1",
+  "requests==2.32.5",
+  "rouge-score==0.1.2",
+  "scikit-learn==1.9.0",
+  "tensorboard==2.20.0",
+  "torch==2.12.0",
+  "tqdm==4.67.3",
+  "transformers==5.10.2",
+]
+
+[dependency-groups]
+dev = [
+  "pytest==9.0.2",
+  "pytest-cov==7.0.0",
+  "ruff==0.15.8",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src"]
+
+# CPU-only environment: the homelab GPU (GTX 970, sm_52) is unsupported by
+# current torch, and the v0 runs were executed on torch +cpu wheels.
+[tool.uv.sources]
+torch = [{ index = "pytorch-cpu" }]
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+  "integration: requires the cached Qwen checkpoint and can be slow",
+]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B"]
+ignore = ["E501"]

@@ -1,0 +1,34 @@
+name: ci
+
+on:
+  push:
+    branches: [main, "feat/**", "fix/**"]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      # Unit lane is fully offline: no HF downloads, no OpenRouter calls.
+      HF_HUB_OFFLINE: "1"
+      TRANSFORMERS_OFFLINE: "1"
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: "0.11.6"
+
+      - name: Sync locked environment
+        run: uv sync --frozen --dev
+
+      - name: Lint
+        run: uv run ruff check src data/generation experiments tests
+
+      - name: Compile
+        run: uv run python -m compileall -q src data/generation experiments tests
+
+      - name: Unit tests (offline)
+        run: uv run pytest -q -m "not integration"

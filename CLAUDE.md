@@ -246,6 +246,96 @@ behavioral-tokens/
 
 ---
 
+## Pipeline v2 — true bottleneck (avviata 2026-07-15, IN CORSO)
+
+**Branch**: `feat/true-compress-bottleneck-v2`. Log dettagliato: `experiments/decisions.md`
+(voci 2026-07-15) e **`CHANGELOG.md`** (stato file per file).
+
+### Perché esiste una v2 (i due difetti fatali della v0)
+
+1. **Nessun vero bottleneck.** La v0 usa causal attention ordinaria: i token dopo
+   `[COMPRESS]` possono leggere direttamente il contesto originale. Ogni successo v0 —
+   inclusi i ✅ del playground qualitativo (T1/T2) — è compatibile con puro *copying
+   attentivo* e NON dimostra compressione attraverso il token. Anche un Exp 1 riuscito
+   non avrebbe provato il meccanismo.
+2. **Split leaked.** Il `prepare_dataset.py` v0 riusava 148 contesti del train dentro
+   test e probe → metriche held-out e probing gonfiati.
+
+### Architettura v2 (decisa)
+
+- **Mask additiva 4D** `(B,1,T,T)`: query fino a `[COMPRESS]` → causalità ordinaria;
+  query dopo → solo chiavi da `[COMPRESS]` in poi. Invariante scientifica: dopo
+  `[COMPRESS]` l'unica via al contesto è l'hidden state del token (`src/bottleneck.py`).
+- **Decoder greedy reference** full-recomputation (`use_cache=False`) come oracolo;
+  potatura KV solo come ottimizzazione successiva, accettata solo se i logits
+  coincidono col reference mantenendo posizioni RoPE assolute.
+- **Contratto dati v2** (`src/data_contract.py`): `example_id`/`content_id` canonici,
+  split disgiunti provati da assert, manifest con hash e provenance per ogni build.
+- **Ordine dei gate** (un FAIL blocca lo step successivo, si documenta e non si aggira):
+  test verdi → build dati su fixture → toy code-recall gate → dati reali + manifest →
+  Exp 0 v2 → Exp 1b stabilità → Exp 2.
+
+### Stato al 2026-07-15 — sessione interrotta, cosa NON è verificato
+
+La sessione autonoma che eseguiva il piano è **morta a metà** per crediti OpenRouter
+esauriti (proxy DeepClaude in modalità `proxy-or`). Conseguenze da conoscere prima di
+toccare qualsiasi cosa:
+
+**Verificato** (output visto prima del crash):
+- branch creata senza stash/reset, modifiche v0 preservate;
+- SHA-256 degli artefatti v0 (split, risultati) rilevati per il manifest;
+- `uv lock` + `uv sync --dev` completati, `torch 2.12.0+cpu` confermato nel venv;
+- digest `python:3.11-slim` pinnato nel Dockerfile.
+
+**NON verificato** (nessun run dopo la scrittura):
+- **`pytest`: ultima esecuzione parzialmente rossa**; fix a `tests/test_bottleneck.py`
+  applicato ma mai rieseguito → lo stato della suite è ignoto;
+- `src/data_contract.py` (~390 righe) e il nuovo `prepare_dataset.py`: **mai eseguiti**,
+  nemmeno su fixture;
+- parte del codice v2 è stata generata col proxy in modalità OpenRouter (backend
+  potenzialmente DeepSeek anche quando la UI mostrava Opus/Fable) → serve una **review
+  più severa del solito**, in particolare su `data_contract.py` e `bottleneck.py`
+  (dove c'era già un errore di sintassi corretto a mano).
+
+**Incoerenza nota**: `requirements.txt` pinna `torch==2.12.0` (da PyPI → wheel CUDA),
+ma lock e ambiente reale usano `2.12.0+cpu` dall'indice PyTorch dedicato
+(`pyproject.toml`). Chi installa da requirements ottiene un ambiente diverso dal lock.
+
+### Prossimi passi (ordine vincolante)
+
+1. **`uv run pytest -q` e chiudere i rossi** — gate 0, decide tutto il resto.
+2. Review di `src/data_contract.py` e `src/bottleneck.py` (codice non fidato, v. sopra).
+3. Riallineare `requirements.txt` a torch `+cpu` (o rimandare esplicitamente a `uv sync`).
+4. Build v2 su **fixture temporanee** (`prepare_dataset.py`) → solo dopo, dati reali
+   con manifest e verifica zero-overlap (`--check`).
+5. **Toy code-recall gate** (100–200 esempi "the secret code is NNNN"), 6 controlli:
+   (a) recall corretto col bottleneck; (b) anchor azzerato → chance; (c) anchor swap →
+   codice dell'altro esempio o fail; (d) contesto alterato post-anchor → logits
+   invariati; (e) contesto visibile = upper bound; (f) token non addestrato → fail.
+6. **Ri-pinnare il criterio gating di Exp 2 in decisions.md** (a risultati non visti):
+   la voce 2026-06-09 parla di 154 MCQ, ma ora il test set ne ha 540 e gli split v2 li
+   cambieranno. Servono: n esatto, baseline Exp 0 ricalcolata sull'intero test v2,
+   numero separato per la parte out-of-style CNN/DailyMail (oggi senza baseline).
+7. **Exp 0 v2**: prediction record per esempio, bootstrap CI, McNemar paired,
+   breakdown per source/distanza.
+8. **Exp 1b conservativo** (lr=5e-5, 1 epoca, r=8, dropout 0.1, `lambda_c=0`) con
+   mini-gate di stabilità durante il training e selezione checkpoint vincolata.
+   Nota potenza statistica: con n=200 downstream la soglia di 2 pt è sotto il rumore
+   binomiale (~3 pt) — aumentare i campioni o usare McNemar sugli stessi item.
+9. Solo su PASS di Exp 1b: **Exp 2** con le 7 condizioni (full context, prompt summary,
+   token unmasked, true bottleneck, anchor zeroed, anchor shuffled, token untrained).
+
+### Nota operativa — proxy DeepClaude
+
+La sessione è morta con 402 OpenRouter e `/compact` è fallito su
+`anthropic/claude-fable-5`: il passthrough dei modelli **non mappati** in
+`~/Work/2-DeepClaude/proxy/model-proxy.js` evidentemente non copre i modelli nuovi
+(`claude-fable-*`), contraddicendo il CLAUDE.md homelab ("i modelli senza voce in
+MODEL_REMAP vanno diretti ad Anthropic"). Prima di sessioni/run lunghi su questo
+progetto: **`proxy-an`** oppure crediti OpenRouter sufficienti; e verificare quel bug.
+
+---
+
 ## Stato progetto
 
 - [x] Setup ambiente Docker su homelab
@@ -253,8 +343,18 @@ behavioral-tokens/
 - [x] Implementazione `src/model.py` con token speciali + LoRA
 - [x] Generazione dataset (A/B/C bilanciati, 3 famiglie via OpenRouter) — train=1334, eval=148, test=540, probe=302 (vedi decisions.md 2026-06-09)
 - [x] Training loop base + logging (incluso varianza hidden state)
-- [ ] **Exp 1 — stabilità baseline → FAIL** (2026-06-14): la ricetta degrada il modello (WikiText ppl **+24.7%**, MMLU **−4 pt**; HellaSwag ok; nessun collasso ma catastrophic forgetting). Exp 2 bloccato finché la ricetta non è corretta e il gate ri-passato. Dettagli e fix candidati: `experiments/exp1_stability/README.md`
-- [ ] Dataset Tipo B + Exp 2 — ablazione distanza
+- [ ] **Exp 1 — stabilità baseline → FAIL** (2026-06-14): la ricetta degrada il modello (WikiText ppl **+24.7%**, MMLU **−4 pt**; HellaSwag ok; nessun collasso ma catastrophic forgetting). La correzione della ricetta è assorbita dalla pipeline v2 (Exp 1b). Dettagli: `experiments/exp1_stability/README.md`
+- [ ] **Pipeline v2 — true bottleneck** (branch `feat/true-compress-bottleneck-v2`, vedi sezione sopra e `CHANGELOG.md`):
+  - [x] Branch + salvaguardia artefatti v0 (SHA-256 rilevati)
+  - [x] Ambiente riproducibile: `pyproject.toml` + `uv.lock` (torch cpu) + Dockerfile + CI
+  - [ ] **Suite test verde** ← PROSSIMO PASSO (ultima esecuzione parziale rossa, fix mai ri-verificato)
+  - [ ] Review del codice generato via proxy OpenRouter (`data_contract.py`, `bottleneck.py`)
+  - [ ] Build dati v2: fixture → dati reali + manifest, zero overlap verificato
+  - [ ] Toy gate bottleneck (code-recall, 6 controlli causali)
+  - [ ] Ri-pin criterio gating Exp 2 (test set 540, split v2) in decisions.md
+  - [ ] Exp 0 v2 (test completo, per-example records, bootstrap/McNemar)
+  - [ ] Exp 1b conservativo (lr 5e-5, 1 epoca, r=8) + mini-gate stabilità
+- [ ] Exp 2 — ablazione distanza (bloccato: richiede Exp 1b PASS)
 - [ ] Exp 3 — probing hidden states **con tutti i controlli**
 - [ ] Dataset Tipo C + Exp 4 — composizione
 - [ ] Exp 5 — intervento causale (se Exp 3 dà risultati positivi)

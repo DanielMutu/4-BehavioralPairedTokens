@@ -230,6 +230,85 @@ Ogni scelta non banale va registrata qui (regola CLAUDE.md).
   mini-gate di stabilità (ppl generica) durante il training, non solo sulla loss
   del task. Dettagli e tabella in `experiments/exp1_stability/README.md`.
 
+## 2026-07-15 — Avvio pipeline v2: true bottleneck e salvaguardia v0
+
+- **Branch**: creata `feat/true-compress-bottleneck-v2` dalla `main` corrente,
+  preservando senza stash/reset le modifiche Exp 1 già staged/unstaged.
+- **Perché serve una v2**: la pipeline v0 usa causal attention ordinaria, quindi
+  i token dopo `[COMPRESS]` possono ancora leggere direttamente il contesto;
+  inoltre lo split v0 include 148 contesti del train nel test e nel probe.
+  Gli artefatti v0 restano storici, ma non supportano claim definitivi di true
+  compression o probing held-out.
+- **Politica artefatti**: nessun risultato v0 viene sovrascritto. Prima delle
+  modifiche sono stati rilevati gli SHA-256 degli split e risultati correnti;
+  saranno registrati nel manifest v0/v2 prodotto dal nuovo data contract.
+- **Ordine dei gate**: test/contratto dati → split disgiunti → attention
+  bottleneck toy gate → Exp 0 v2 → Exp 1b stabilità → Exp 2. Un FAIL blocca lo
+  step successivo e viene documentato, non aggirato.
+- **Decisione architetturale**: prima implementazione corretta tramite mask
+  additiva 4D e decoder greedy full-recomputation (`use_cache=False`). La
+  potatura KV è un'ottimizzazione successiva e sarà accettata solo se i logits
+  coincidono con il decoder reference mantenendo le posizioni RoPE assolute.
+
+## 2026-07-15 — Sessione v2 interrotta: stato verificato/non verificato e piano di ripresa
+
+- **Cosa è successo**: l'esecuzione autonoma del piano v2 si è interrotta per
+  esaurimento crediti OpenRouter (proxy DeepClaude in modalità `proxy-or`).
+  Ultimo atto della sessione: fix a `tests/test_bottleneck.py` applicato ma
+  **mai ri-verificato** — pytest non è stato rilanciato dopo il fix.
+- **Stato VERIFICATO** (output visto a schermo prima del crash):
+  - branch `feat/true-compress-bottleneck-v2` creata, modifiche v0 preservate;
+  - SHA-256 di split e risultati v0 rilevati (per il manifest v0/v2);
+  - `uv lock` + `uv sync --dev` completati; `torch 2.12.0+cpu` importa,
+    `cuda_available=False` come atteso;
+  - digest `python:3.11-slim` risolto e pinnato nel Dockerfile.
+- **Stato NON VERIFICATO** (scritto ma mai eseguito con successo):
+  - suite pytest: unica esecuzione parzialmente rossa, poi fix e crash;
+  - `src/data_contract.py` (~390 righe): mai eseguito, nemmeno import;
+  - `data/generation/prepare_dataset.py` v2: mai eseguito, nemmeno su fixture;
+  - CI workflow: mai girata.
+- **Caveat qualità del codice**: parte del codice v2 è stata generata con il
+  proxy in modalità OpenRouter — il backend reale può essere stato DeepSeek
+  anche quando la UI mostrava Opus/Fable. In `src/bottleneck.py` c'era già un
+  errore di sintassi (`n most`) corretto a mano. Decisione: `data_contract.py`
+  e `bottleneck.py` vanno **riletti integralmente** prima di fidarsi dei test
+  che li coprono (i test stessi provengono dalla stessa sessione).
+- **Incoerenza ambiente da sanare**: `requirements.txt` pinna `torch==2.12.0`
+  (PyPI → wheel CUDA), mentre `uv.lock`/venv usano `2.12.0+cpu` dall'indice
+  PyTorch dedicato dichiarato in `pyproject.toml`. Chi installa da
+  requirements ottiene un ambiente diverso da quello testato.
+- **Decisione di perimetro per la ripresa**: eseguire il piano fino a
+  **toy gate bottleneck + Exp 0 v2** e fermarsi a rapporto prima di Exp 1b
+  (~2.5 h CPU). I blocchi del piano su Exp 3/4/5 si implementano solo quando
+  i gate precedenti passano: codice scritto ora verrebbe riscritto comunque.
+- **Prerequisito scientifico prima di Exp 0 v2**: ri-pinnare il criterio
+  gating di Exp 2 a risultati non visti. La voce 2026-06-09 fissa il verdetto
+  su 154 MCQ, ma oggi il test set ne ha 540 annotati e gli split v2 lo
+  cambieranno di nuovo. La nuova voce dovrà fissare: n esatto sul test v2,
+  baseline Exp 0 ricalcolata sull'intero set (0.82 era su n=50, quasi solo
+  sintetici), e un numero separato per la parte out-of-style CNN/DailyMail,
+  che oggi non ha alcuna baseline.
+- **Nota statistica per il gate di Exp 1b** (da applicare, soglie invariate):
+  con 200 campioni downstream la sd binomiale di una accuracy è ~3 pt, quindi
+  la soglia di gate (2.0 pt) è più stretta della precisione della misura — il
+  FAIL v0 resta valido perché la ppl +24.7% è inequivocabile, ma il prossimo
+  verdetto downstream va dato con più campioni o con McNemar appaiato sugli
+  stessi item.
+- **Bug infrastrutturale (fuori progetto, da verificare)**: `/compact` è
+  fallito con `anthropic/claude-fable-5 ... may not exist` mentre il proxy era
+  in modalità OpenRouter → il passthrough dei modelli non mappati in
+  `~/Work/2-DeepClaude/proxy/model-proxy.js` non copre `claude-fable-*`,
+  contraddicendo il CLAUDE.md homelab ("i modelli senza voce in MODEL_REMAP
+  vanno sempre diretti ad Anthropic"). Mitigazione operativa: `proxy-an` prima
+  di sessioni lunghe.
+- **Fix documentali contestuali** (2026-07-15): il riferimento in
+  `qualitative_playground.md` a una voce "2026-07-14" di questo log era rotto
+  (la voce non è mai stata scritta; l'analisi vive nel README di Exp 1 e nel
+  playground stesso) → corretto. Aggiunto al playground il caveat che i ✅
+  T1/T2 non dimostrano compressione sotto la pipeline v0 (attention non
+  mascherata → copying attentivo possibile). Le voci storiche di questo log
+  restano intoccate.
+
 ## Template per nuove decisioni
 
 ```

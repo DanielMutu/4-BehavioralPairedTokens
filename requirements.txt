@@ -1,16 +1,18 @@
-torch>=2.2
-transformers>=4.45
-peft>=0.15
-datasets>=2.20
-accelerate>=0.30
-scikit-learn>=1.4
-numpy>=1.26
-matplotlib>=3.8
-tensorboard>=2.16
-rouge-score>=0.1.2
-requests>=2.31
-tqdm>=4.66
+# Exact runtime environment used by the v2 reference implementation.
+# Prefer `uv sync --dev` with the committed uv.lock for development and CI.
+accelerate==1.13.0
+datasets==5.0.0
+matplotlib==3.10.8
+numpy==2.4.6
+peft==0.19.1
+requests==2.32.5
+rouge-score==0.1.2
+scikit-learn==1.9.0
+tensorboard==2.20.0
+torch==2.12.0
+tqdm==4.67.3
+transformers==5.10.2
 
-# optional
-# wandb>=0.17
-# bert-score>=0.3.13
+# Optional experiment integrations (not part of the locked core)
+# wandb
+# bert-score
