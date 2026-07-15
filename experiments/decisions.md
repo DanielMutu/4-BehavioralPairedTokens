@@ -448,6 +448,59 @@ Gate "build dati v2" del piano: PASS. Sequenza eseguita e verificata:
   stato toccato. `run_toy.py` ora supporta anche il run di controllo
   full-context per la condizione "token, unmasked" di Exp 2.
 
+## 2026-07-15 — Triage review esterna: claim verificate, P0 accettato, notebook
+
+Ricevuta una review esterna statica del repo (salvata integralmente in
+`docs/external_review_2026-07-15.md`). Triage punto per punto:
+
+- **Claim tecniche VERIFICATE sul codice (tutte confermate)**:
+  1. `src/train.py:79,134` chiama `model(...)` con attention ordinaria — il
+     bottleneck NON è collegato al training;
+  2. `src/eval.py:69` usa `model.generate` standard e `option_loglik` (r.125)
+     non passa la mask; le versioni `*_bottlenecked` esistono ma non sono
+     importate da nessun modulo di `src/`;
+  3. `src/eval.py:105` legge `meta.get("distance", 0)` — chiave che il
+     contratto v2 rimuove: con dati v2 tutti gli esempi finirebbero nel
+     bucket distanza 0 (bug bloccante per Exp 2);
+  4. `src/probe.py:68` estrae hidden state con forward ordinario;
+  5. `src/dataset.py:63` tokenizza con `truncation=True` senza
+     `validate_layout` → possibile troncamento silenzioso dei token paired;
+  6. accumulo gradienti senza flush finale + `total_steps` con divisione
+     intera (`src/train.py:115,140`).
+- **Conclusione accettata**: la milestone P0 della review diventa vincolante
+  e si inserisce PRIMA di Exp 1b nell'ordine dei gate: *un unico percorso
+  bottleneck condiviso da train/eval/probe/intervention, con un test
+  end-to-end che fallisca se un componente torna alla causal attention
+  ordinaria*. Senza questo, un Exp 1b "riuscito" produrrebbe di nuovo un
+  checkpoint v0-style.
+- **Punti già coperti dal lavoro fatto** (la review fotografa main a un
+  commit precedente): suite verde e review moduli (voci precedenti), build
+  dati v2 con manifest, McNemar/CI già pianificati per Exp 0 v2, condizione
+  "token unmasked" già nelle 7 condizioni di Exp 2, nota potenza statistica
+  già registrata.
+- **Osservazione scientifica di merito accolta (relay)**: la mask attuale
+  permette ai filler di leggere l'anchor e ai token successivi di leggere i
+  filler → l'informazione può essere replicata a catena. Il bottleneck
+  causale resta valido, ma l'ablazione distanza misura la sopravvivenza
+  dell'informazione nella catena, non la persistenza del singolo hidden
+  state. Exp 2 dovrà includere la condizione **anchor-only recall** (filler
+  ciechi sull'anchor; solo [RECALL] lo legge). Da pre-registrare nel ri-pin
+  del criterio gating.
+- **Da adottare più avanti** (registrato, non bloccante ora): multi-seed sui
+  risultati principali; ablazione nomi semantici vs token neutri; dedupe
+  semantico (MinHash/embedding) oltre a content_id; probing con group-split
+  per content_id e nested CV; controlli causali estesi per Exp 5; niente
+  claim "compressione ~100×" senza definire la metrica (posizioni vs byte KV
+  vs FLOPs); LICENSE/CITATION.
+- **Notebook**: creati `notebooks/README.md` (piano 00–11 con stato e
+  dipendenze) e i tre eseguibili oggi: `00_project_status`,
+  `01_dataset_audit`, `03_attention_bottleneck_visualizer` — tutti
+  smoke-testati cella per cella (output verificati; figure in
+  `results/figures/`, tabelle in `results/tables/`). I notebook 🔒 si
+  costruiscono quando esistono gli artefatti che devono leggere.
+- **Fix documentale**: README allineato allo stato verificato (la nota "test
+  non garantiti verdi" era rimasta dal 2026-07-15 mattina, superata dai fatti).
+
 ## Template per nuove decisioni
 
 ```

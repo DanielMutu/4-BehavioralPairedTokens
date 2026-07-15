@@ -9,18 +9,25 @@ Contesto completo, ipotesi, letteratura e regole: **[CLAUDE.md](CLAUDE.md)**.
 Log decisioni: **[experiments/decisions.md](experiments/decisions.md)**.
 Stato file per file: **[CHANGELOG.md](CHANGELOG.md)**.
 
-> ⚠️ **Stato (2026-07-15)**: sul branch `feat/true-compress-bottleneck-v2` è in
-> corso la **pipeline v2** (true attention bottleneck + split disgiunti),
-> interrotta a metà — la suite di test NON è garantita verde e i moduli v2
-> (`src/data_contract.py`, `src/bottleneck.py`) non sono ancora validati.
-> Prima di usare qualsiasi cosa: `CLAUDE.md` → sezione "Pipeline v2".
+> **Stato verificato (2026-07-15, sera)** — pipeline v2 su `main`:
+> - Test: **40 passed** (34 unit + 6 integration Qwen), ruff pulito, CI verde
+> - Moduli v2 (`data_contract`, `bottleneck`): review completata, mask 4D
+>   **verificata su Qwen reale** (zero leak)
+> - Dati v2: build con manifest, split disgiunti (train=1197/eval=149/
+>   test=541/probe=304, test tutto MCQ-annotato)
+> - Toy gate code-recall: tent. 1 FAIL formale ma controlli causali PASS;
+>   tent. 2 in corso
+> - **Gate bloccante attuale**: integrazione bottleneck end-to-end in
+>   train/eval/probe (P0 — vedi `docs/external_review_2026-07-15.md`);
+>   fino ad allora `src/train.py` e `src/eval.py` restano v0-style
+> - Dettagli: `CLAUDE.md` → "Pipeline v2", `CHANGELOG.md`, `experiments/decisions.md`
 
 ## Setup
 
 ```bash
 cd ~/Work/4-BehavioralPairedTokens
 uv sync --dev            # ambiente bloccato da uv.lock (torch CPU)
-uv run pytest -q         # gate 0 — al 2026-07-15 NON garantito verde
+uv run pytest -q         # unit; integration: uv run pytest -m integration
 ```
 
 `requirements.txt` esiste come riferimento ma pinna `torch` senza suffisso

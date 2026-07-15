@@ -353,7 +353,8 @@ progetto: **`proxy-an`** oppure crediti OpenRouter sufficienti; e verificare que
   - [ ] **Toy gate bottleneck (code-recall, 6 controlli causali)** ← IN CORSO
     - tentativo 1 (2026-07-15): FAIL formale (acc 0.375 < 0.90) ma controlli causali PASS (untrained 0, anchor-removed 0, context-override 0.95, swap 0.45) — meccanismo validato, run finito a metà transizione; vedi `experiments/toy_bottleneck/README.md`
     - tentativo 2 in corso: 400 codici train, 30 epoche, soglie invariate
-  - [ ] Ri-pin criterio gating Exp 2 (test set 540, split v2) in decisions.md
+  - [ ] **P0 — Integrazione bottleneck end-to-end** (da review esterna, `docs/external_review_2026-07-15.md`, claim verificate): `forward_bottlenecked` in train.py; `generate/option_loglik_bottlenecked` in eval.py; probe/intervention su percorso v2; fix `distance`→`distance_target_tokens` in eval.py; `validate_layout` post-tokenizzazione in dataset.py; fix flush finale grad-accum; test e2e che fallisce se un componente torna alla causal ordinaria. **Vincolante prima di Exp 1b.**
+  - [ ] Ri-pin criterio gating Exp 2 (test set 541, split v2) in decisions.md — includere condizione **anchor-only recall** (controllo relay: i filler non leggono l'anchor)
   - [ ] Exp 0 v2 (test completo, per-example records, bootstrap/McNemar)
   - [ ] Exp 1b conservativo (lr 5e-5, 1 epoca, r=8) + mini-gate stabilità
 - [ ] Exp 2 — ablazione distanza (bloccato: richiede Exp 1b PASS)

@@ -1,0 +1,5 @@
+split,n,mcq,ctx_words_median,tgt_words_median
+eval,149,149,77.0,28.0
+probe,304,304,75.0,28.0
+test,541,541,249.0,36.0
+train,1197,1196,76.0,29.0

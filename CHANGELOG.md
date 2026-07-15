@@ -97,6 +97,18 @@ questo file traccia **cosa è cambiato, file per file, e cosa è verificato**.
   corso (400 codici, 30 epoche, soglie invariate). Risultato:
   `results/toy_bottleneck.json` (+ `.log`).
 
+- **Review esterna integrata + notebook** (2026-07-15): review statica del
+  repo salvata in `docs/external_review_2026-07-15.md`; tutte le 6 claim
+  tecniche verificate sul codice e confermate (bottleneck non collegato a
+  train/eval/probe, bug `distance` in eval, truncation silenzioso, grad
+  accum senza flush). La milestone **P0 — integrazione bottleneck
+  end-to-end** è accettata come gate vincolante prima di Exp 1b; il
+  controllo **anchor-only recall** (relay) entra nelle condizioni di Exp 2.
+  Creati `notebooks/README.md` (piano 00–11) + 3 notebook eseguibili e
+  smoke-testati: `00_project_status`, `01_dataset_audit`,
+  `03_attention_bottleneck_visualizer`. README allineato allo stato
+  verificato. Triage completo: decisions.md 2026-07-15.
+
 ### Known issues / debito aperto
 
 1. ~~pytest mai rilanciato dopo l'ultimo fix → stato suite ignoto (gate 0)~~
