@@ -251,9 +251,9 @@ behavioral-tokens/
 - [x] Setup ambiente Docker su homelab
 - [x] **Exp 0 — Baseline prompt engineering** (gating decision) — baseline forte: MCQ 0.82, fact 0.74; si procede, barra fissata (vedi decisions.md 2026-06-09)
 - [x] Implementazione `src/model.py` con token speciali + LoRA
-- [ ] Generazione dataset Tipo A (500 esempi, generatori multipli)
+- [x] Generazione dataset (A/B/C bilanciati, 3 famiglie via OpenRouter) — train=1334, eval=148, test=540, probe=302 (vedi decisions.md 2026-06-09)
 - [x] Training loop base + logging (incluso varianza hidden state)
-- [ ] Exp 1 — stabilità baseline + eval su task downstream
+- [ ] **Exp 1 — stabilità baseline → FAIL** (2026-06-14): la ricetta degrada il modello (WikiText ppl **+24.7%**, MMLU **−4 pt**; HellaSwag ok; nessun collasso ma catastrophic forgetting). Exp 2 bloccato finché la ricetta non è corretta e il gate ri-passato. Dettagli e fix candidati: `experiments/exp1_stability/README.md`
 - [ ] Dataset Tipo B + Exp 2 — ablazione distanza
 - [ ] Exp 3 — probing hidden states **con tutti i controlli**
 - [ ] Dataset Tipo C + Exp 4 — composizione

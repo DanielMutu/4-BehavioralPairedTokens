@@ -143,6 +143,93 @@ Ogni scelta non banale va registrata qui (regola CLAUDE.md).
   di un generatore è rumore accettabile); è escluso solo dall'annotazione
   *eval*, dove la qualità delle domande determina la validità della metrica.
 
+## 2026-06-13 — Exp 1: setup, gate pre-registrato e vincolo CPU
+
+- **Vincolo hardware scoperto**: il torch installato è CPU-only
+  (`2.12.0+cpu`, `cuda_avail=False`); la GTX 970 (Maxwell, 4GB) non è
+  utilizzabile. Exp 1 gira interamente su CPU (i7-6700, 4 thread).
+  Throughput misurato: ~8.9 s/batch (bs=4, len≤384) → 3 epoch ≈ 2.5 h.
+  Coerente con "training overnight su config leggere".
+- **Config run reale** (`experiments/exp1_stability/train_config.json`):
+  `max_length=384` invece di 1024 — la distribuzione reale del train set ha
+  max 342 token (p99=290), quindi nessun troncamento e CPU più veloce.
+  `epochs=3, batch_size=4, grad_accum=4` (effettivo 16), `lambda_c=0`
+  (consistency OFF al primo giro, regola CLAUDE.md), `seed=42`.
+- **Gate pre-registrato (a risultati non visti)**: PASS sse
+  (1) perplexity WikiText-2 aumenta di ≤ 5% (relativo), E
+  (2) ogni accuracy downstream cala di ≤ 2.0 punti (assoluti).
+  Motivo della soglia: Exp 1 verifica *stabilità*, non miglioramento — il
+  fine-tuning LoRA + i nuovi token non devono rompere le capacità generali.
+  Implementato in `experiments/exp1_stability/run_exp1.py`.
+- **Benchmark downstream scelti: HellaSwag + MMLU** (multiple-choice,
+  scored via log-likelihood normalizzata per lunghezza, stesso protocollo di
+  `option_loglik` già usato per gli MCQ). **GSM8K escluso volutamente**:
+  è generativo, un modello 0.5B base sta vicino al chance level (nessun
+  headroom per rilevare una degradazione), e la generazione è lenta su CPU.
+  Un test di stabilità ha bisogno di metriche con margine per *scendere*;
+  GSM8K già a terra non può mostrare degrado. Numeri cloze-style: conta solo
+  il DELTA base-vs-trained, non il valore assoluto vs leaderboard.
+- **Confronto equo**: "base" = modello originale + token aggiunti
+  (mean-init, mai usati nei testi dei benchmark) senza adapter; "trained" =
+  + adapter LoRA. L'adapter agisce su q_proj/v_proj in ogni forward, quindi
+  il delta misura proprio l'effetto del fine-tuning sulle capacità generali.
+
+## 2026-06-14 — Exp 1: esito del training run (checkpoint `exp1-stability`)
+
+- **Run completato**: 2026-06-13 21:51 → 2026-06-14 00:16 (~2h25), CPU,
+  3 epoch (~250 optimizer step). Parametri trainabili 1.084.032 (0.22%).
+- **Salute (TensorBoard `results/runs/exp1-stability`)**:
+  - `train/loss_ce` 1.97 → 0.84 (min 0.72); `eval/loss_ce` 0.939 → **0.907**
+    (best, step 249).
+  - `train/perplexity` 7.15 → 2.31; `eval/perplexity` 2.60 → 2.52.
+  - `loss_consistency` = 0.0 costante (atteso, `lambda_c=0`).
+  - **Varianza hidden `[COMPRESS]`**: train 18.8 → 16.0 (range 12–39),
+    eval 23.3 → 20.3. **Nessun collasso** — il controllo anti-degenerazione
+    centrale del progetto è verde.
+- **Decisione**: training accettato come sano; si procede allo step di
+  *valutazione* di stabilità (separato dal training). Il verdetto PASS/FAIL
+  di Exp 1 NON è ancora dato: dipende dal confronto base-vs-trained su
+  WikiText-2/HellaSwag/MMLU prodotto da `run_exp1.py`.
+- **Nota di processo**: il training e la valutazione sono due script distinti
+  (`src/train.py` addestra, `experiments/exp1_stability/run_exp1.py` valuta).
+  Aver lanciato solo il primo non chiude Exp 1.
+
+## 2026-06-14 — Fix caricamento dataset WikiText in `src/eval.py`
+
+- **Problema**: `run_exp1.py` crashava all'avvio della valutazione in
+  `wikitext_perplexity`: `load_dataset("wikitext", "wikitext-2-raw-v1")` usa
+  il nome canonico legacy, non più risolvibile con `datasets 5.0.0` /
+  `huggingface_hub 1.18.0` (`HfUriError: Repository id must be
+  'namespace/name'`).
+- **Decisione**: usare il repo id namespaced `Salesforce/wikitext` (mirror
+  ufficiale, stesso contenuto). HellaSwag (`Rowan/hellaswag`) e MMLU
+  (`cais/mmlu`) erano già namespaced → nessuna modifica. Fix in `src/eval.py:48`.
+- **Impatto**: sblocca Exp 1 e ogni futura chiamata a `wikitext_perplexity`
+  (riusata negli esperimenti successivi). Valutazione rilanciata su CPU.
+
+## 2026-06-14 — Exp 1: VERDETTO = FAIL (la ricetta degrada il modello)
+
+- **Risultati** (`results/exp1_stability.json`, 200 campioni downstream,
+  100 blocchi WikiText):
+  - WikiText-2 ppl: 14.399 → 17.956 (**+24.7%**) → FAIL (gate ≤ +5%).
+  - HellaSwag: 0.460 → 0.475 (−1.5 pt, migliora) → ok.
+  - MMLU: 0.275 → 0.235 (**+4.0 pt di calo**) → FAIL (gate ≤ 2.0).
+  - `PASS = false`.
+- **Lettura**: over-specializzazione sul task. La `eval/loss_ce` del task era
+  ottima (ppl 2.52), ma le capacità generali sono peggiorate → catastrophic
+  forgetting da training troppo aggressivo su distribuzione stretta. Coerente
+  col fatto che il *training* era "sano" (nessun collasso): collasso e
+  forgetting sono problemi diversi — il primo è degenerazione dell'hidden
+  state, il secondo è perdita di capacità generali. Exp 1 cattura il secondo.
+- **Decisione**: Exp 2 **resta bloccato**. Va corretta la ricetta e ri-passato
+  questo stesso gate (soglie invariate) prima di misurare il recall — altrimenti
+  un eventuale Exp 2 debole sarebbe inattribuibile (token deboli o modello rotto?).
+- **Fix candidati** (scelta da fare): (1) `lr` più basso (es. 5e-5) e/o 1 epoca;
+  (2) **replay** di language modeling generico (~10–20% del train); (3) adapter
+  meno capiente (`r=8`) o `lora_dropout` più alto; (4) selezione checkpoint con
+  mini-gate di stabilità (ppl generica) durante il training, non solo sulla loss
+  del task. Dettagli e tabella in `experiments/exp1_stability/README.md`.
+
 ## Template per nuove decisioni
 
 ```

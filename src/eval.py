@@ -45,7 +45,7 @@ def load_for_eval(checkpoint: str | None, cfg: TrainConfig, device):
 def wikitext_perplexity(model, tokenizer, device, max_samples: int = 200,
                         block_size: int = 1024) -> float:
     from datasets import load_dataset
-    ds = load_dataset("wikitext", "wikitext-2-raw-v1", split="test")
+    ds = load_dataset("Salesforce/wikitext", "wikitext-2-raw-v1", split="test")
     text = "\n\n".join(t for t in ds["text"] if t.strip())
     ids = tokenizer(text, add_special_tokens=False, return_tensors="pt")["input_ids"][0]
 
@@ -148,11 +148,66 @@ def eval_mcq(model, tokenizer, examples: list[dict], device) -> dict:
     return {"mcq_accuracy": correct / total if total else float("nan"), "n_mcq": total}
 
 
+# ------------------------------------------------------------ downstream (Exp 1)
+# Stability check: adding the behavioral tokens + LoRA must not degrade general
+# capability. Both benchmarks are scored by length-normalized completion
+# log-likelihood (same protocol as option_loglik), so the absolute numbers are
+# cloze-style and need not match published leaderboards — only the base-vs-trained
+# DELTA matters. GSM8K is intentionally omitted: it is generative, sits near
+# chance on a 0.5B base model (no headroom to detect degradation), and is slow on
+# CPU. See experiments/decisions.md.
+
+
+def _mc_accuracy(model, tokenizer, items, device, desc: str) -> float:
+    """items: list of (prompt, options, answer_idx). Argmax mean-token loglik."""
+    correct = 0
+    for prompt, options, answer_idx in tqdm(items, desc=desc):
+        scores = [option_loglik(model, tokenizer, prompt, opt, device) for opt in options]
+        correct += int(scores.index(max(scores)) == answer_idx)
+    return correct / len(items) if items else float("nan")
+
+
+def eval_hellaswag(model, tokenizer, device, max_samples: int = 300) -> tuple[float, int]:
+    from datasets import load_dataset
+    ds = load_dataset("Rowan/hellaswag", split="validation")
+    items = []
+    for ex in ds:
+        if ex["label"] == "":  # unlabeled rows
+            continue
+        prompt = (ex["activity_label"] + ": " + ex["ctx"]).strip()
+        items.append((prompt, [" " + e.strip() for e in ex["endings"]], int(ex["label"])))
+        if len(items) >= max_samples:
+            break
+    return _mc_accuracy(model, tokenizer, items, device, "hellaswag"), len(items)
+
+
+def eval_mmlu(model, tokenizer, device, max_samples: int = 300) -> tuple[float, int]:
+    from datasets import load_dataset
+    ds = load_dataset("cais/mmlu", "all", split="test").shuffle(seed=42)
+    items = []
+    for ex in ds:
+        prompt = f"{ex['question'].strip()}\nAnswer:"
+        items.append((prompt, [" " + c.strip() for c in ex["choices"]], int(ex["answer"])))
+        if len(items) >= max_samples:
+            break
+    return _mc_accuracy(model, tokenizer, items, device, "mmlu"), len(items)
+
+
+def eval_downstream(model, tokenizer, device, max_samples: int = 300) -> dict:
+    hs_acc, hs_n = eval_hellaswag(model, tokenizer, device, max_samples)
+    mmlu_acc, mmlu_n = eval_mmlu(model, tokenizer, device, max_samples)
+    return {
+        "hellaswag_accuracy": hs_acc, "n_hellaswag": hs_n,
+        "mmlu_accuracy": mmlu_acc, "n_mmlu": mmlu_n,
+    }
+
+
 # ---------------------------------------------------------------- CLI
 
 def main():
     p = argparse.ArgumentParser(description=__doc__)
-    p.add_argument("--task", required=True, choices=["wikitext", "recall", "mcq"])
+    p.add_argument("--task", required=True,
+                   choices=["wikitext", "recall", "mcq", "downstream"])
     p.add_argument("--checkpoint", type=str, default=None,
                    help="adapter dir; omit to evaluate the base model")
     p.add_argument("--model-name", type=str, default="Qwen/Qwen2.5-0.5B")
@@ -169,6 +224,8 @@ def main():
     if args.task == "wikitext":
         results = {"wikitext2_perplexity": wikitext_perplexity(
             model, tokenizer, device, max_samples=args.max_samples)}
+    elif args.task == "downstream":
+        results = eval_downstream(model, tokenizer, device, max_samples=args.max_samples)
     else:
         examples = load_jsonl(args.data, max_examples=args.max_samples)
         fn = eval_recall if args.task == "recall" else eval_mcq

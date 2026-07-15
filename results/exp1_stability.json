@@ -1,0 +1,31 @@
+{
+  "model": "Qwen/Qwen2.5-0.5B",
+  "checkpoint": "results/checkpoints/exp1-stability/best",
+  "base": {
+    "wikitext2_perplexity": 14.399330808161526,
+    "hellaswag_accuracy": 0.46,
+    "n_hellaswag": 200,
+    "mmlu_accuracy": 0.275,
+    "n_mmlu": 200
+  },
+  "trained": {
+    "wikitext2_perplexity": 17.95553794888088,
+    "hellaswag_accuracy": 0.475,
+    "n_hellaswag": 200,
+    "mmlu_accuracy": 0.235,
+    "n_mmlu": 200
+  },
+  "verdict": {
+    "wikitext2_ppl_rel_increase": 0.247,
+    "hellaswag_drop_pts": -1.5,
+    "mmlu_drop_pts": 4.0,
+    "ppl_ok": false,
+    "hellaswag_ok": true,
+    "mmlu_ok": false,
+    "PASS": false,
+    "thresholds": {
+      "max_ppl_rel_increase": 0.05,
+      "max_downstream_drop_pts": 2.0
+    }
+  }
+}
