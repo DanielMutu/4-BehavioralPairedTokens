@@ -124,6 +124,14 @@ questo file traccia **cosa è cambiato, file per file, e cosa è verificato**.
   `tests/test_pipeline_integration.py`: spia dell'attention_mask su ogni
   entry point + e2e Qwen. Suite: **51 passed** (44 unit + 7 integration).
 
+- **Pre-registrazione criterio gating Exp 2 su test v2** (2026-07-15):
+  coorte per example_id = 541 MCQ (manifest pinnato); primario = McNemar
+  p<0.05 vs baseline Exp 0 v2 (da rieseguire sull'intera coorte); secondario
+  = pareggio entro ±3 pt con bootstrap CI; numero separato obbligatorio per
+  la partizione out-of-style CNN/DailyMail (n=386); 8 condizioni Exp 2
+  incluso **anchor-only recall** (controllo relay). Sostituisce la voce v0
+  su 154 MCQ. Dettagli: decisions.md 2026-07-15.
+
 ### Known issues / debito aperto
 
 1. ~~pytest mai rilanciato dopo l'ultimo fix → stato suite ignoto (gate 0)~~

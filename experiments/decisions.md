@@ -547,6 +547,57 @@ UN solo percorso di attention, dichiarato e verificato.
 - **Conseguenza**: il P0 è chiuso; Exp 1b resta bloccato solo dal toy gate
   (tentativo 2 in corso) e dal ri-pin del criterio Exp 2.
 
+## 2026-07-15 — PRE-REGISTRAZIONE: criterio gating Exp 2 su test set v2 (a risultati non visti)
+
+Sostituisce la voce 2026-06-09 (che fissava il verdetto su 154 MCQ del test
+v0, oggi superato). Fissata ORA, prima di Exp 0 v2, prima di Exp 1b e prima
+di qualsiasi risultato Exp 2. **Queste soglie non si ritoccano.**
+
+- **Coorte del verdetto**: TUTTI i 541 esempi del test set v2, tutti
+  MCQ-annotati (manifest sha256
+  `d531d521b270b5edbc6e52f4f478c5472377da2266e9efba11caf4fb60c702ea`;
+  composizione: 386 CNN/DailyMail out-of-style + 6 handwritten + 149
+  sintetici in-style, questi ultimi MAI visti in training — a differenza
+  del test v0, che riusava 148 contesti del train). Selezione per
+  `example_id` via `CohortSelection`, mai "primi N".
+- **Baseline**: la baseline v0 (0.82 su n=50) è storica e NON è l'asticella.
+  L'asticella è **Exp 0 v2**: stesso protocollo two-stage
+  (riassunto→risposta), rieseguito sull'intera coorte di 541, con prediction
+  record per esempio. Va eseguito PRIMA di Exp 2 e con lo stesso scoring
+  (`option_loglik_full_context` per la baseline prompt, che è testo piano).
+- **Criterio primario (vittoria)**: la condizione *true bottleneck* batte la
+  baseline prompt-summary sugli stessi 541 item — differenza appaiata > 0
+  con McNemar p < 0.05.
+- **Criterio secondario (pareggio legittimo)**: differenza appaiata entro
+  **±3 punti** (CI 95% bootstrap della differenza contenuto in [−3, +3]) —
+  con n=541 la sd binomiale è ~2 pt, quindi ±3 è più stretto del ±5 usato
+  con n=50, com'è giusto. In caso di pareggio vince l'efficienza del canale
+  (1 hidden state vs ~150 token di riassunto), e il valore del progetto si
+  sposta su Exp 3/5. La densità NON va chiamata "compressione ~100×" senza
+  specificare la metrica (posizioni attese vs byte KV vs FLOPs).
+- **Numero separato obbligatorio per l'out-of-style**: accuracy e delta
+  appaiato riportati anche sulla sola partizione CNN/DailyMail (n=386,
+  finora senza alcuna baseline) — è la parte che distingue comportamento
+  appreso da stile del generatore. Un PASS complessivo con FAIL netto
+  sull'out-of-style va dichiarato come tale, non mediato via.
+- **Condizioni di Exp 2** (8, estese col controllo relay):
+  1. full context (upper bound); 2. prompt summary (baseline Exp 0);
+  3. token addestrati, attention libera ("unmasked" — quantifica il
+  copying); 4. **true bottleneck**; 5. anchor azzerato; 6. anchor
+  shuffled/swap tra esempi; 7. token non addestrato; 8. **anchor-only
+  recall** (i filler non leggono l'anchor; solo [RECALL] può — separa
+  "persistenza del singolo hidden state" da "relay attraverso la catena").
+- **Statistica**: per ogni condizione bootstrap CI (10k resample) su
+  accuracy; McNemar appaiato per i confronti col baseline; breakdown per
+  source e, sui tipi B, per `distance_target_tokens` (banda 3–100; le
+  distanze con n<10 si riportano ma non supportano claim).
+- **Fact retrieval**: metrica secondaria (rumorosa, v. caveat Exp 0 v0),
+  riportata ma non gating.
+- **Motivo del ri-pin ora**: il toy gate (tentativo 2 in corso) non informa
+  queste soglie; fissarle prima di vedere QUALSIASI numero nuovo chiude la
+  porta alla razionalizzazione a posteriori — lo stesso principio della
+  voce 2026-06-09, aggiornato ai dati v2.
+
 ## Template per nuove decisioni
 
 ```
