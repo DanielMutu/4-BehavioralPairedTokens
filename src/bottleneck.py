@@ -93,6 +93,7 @@ def build_bottleneck_mask(attention_mask_2d: torch.Tensor,
     key_real = attention_mask_2d.to(torch.bool).view(bsz, 1, seq)
 
     allowed = causal & no_bypass & key_real
+    _reject_fully_blocked_rows(allowed)
     mask = torch.zeros(bsz, 1, seq, seq, dtype=dtype, device=device)
     mask.masked_fill_(~allowed.view(bsz, 1, seq, seq), torch.finfo(dtype).min)
     return mask
@@ -107,9 +108,23 @@ def build_causal_mask(attention_mask_2d: torch.Tensor,
     k = torch.arange(seq, device=device).view(1, 1, seq)
     key_real = attention_mask_2d.to(torch.bool).view(bsz, 1, seq)
     allowed = (k <= q) & key_real
+    _reject_fully_blocked_rows(allowed)
     mask = torch.zeros(bsz, 1, seq, seq, dtype=dtype, device=device)
     mask.masked_fill_(~allowed.view(bsz, 1, seq, seq), torch.finfo(dtype).min)
     return mask
+
+
+def _reject_fully_blocked_rows(allowed: torch.Tensor) -> None:
+    """A query row with zero allowed keys makes softmax(-inf everywhere) = NaN,
+    and the NaN poisons real positions through later layers (0 * NaN = NaN).
+    This happens with LEFT padding, which is therefore rejected loudly here:
+    the pipeline requires right padding.
+    """
+    if not allowed.any(dim=-1).all():
+        bad = (~allowed.any(dim=-1)).nonzero(as_tuple=True)
+        raise LayoutError(
+            f"mask has fully-blocked query rows (batch,query)={[t.tolist() for t in bad]}; "
+            "use right padding — left padding is unsupported")
 
 
 # ------------------------------------------------------------- shared forward

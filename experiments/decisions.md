@@ -332,6 +332,50 @@ Ogni scelta non banale va registrata qui (regola CLAUDE.md).
   dalla stessa sessione non fidata) e la prima esecuzione reale di
   `prepare_dataset.py` su fixture (i gate successivi del piano).
 
+## 2026-07-15 — Review di data_contract.py e bottleneck.py: esito e fix
+
+Review integrale dei due moduli ereditati dalla sessione col backend
+OpenRouter (obbligo registrato il 2026-07-15). Esito: **impianto corretto,
+5 difetti reali corretti, 1 claim critica ora VERIFICATA su Qwen reale**.
+
+- **Claim verificata (era solo asserita in docstring)**: transformers 5.10.2
+  onora davvero la mask additiva 4D `(B,1,T,T)` passata come `attention_mask`
+  a Qwen2 con SDPA. Nuova suite `tests/test_qwen_integration.py` (marker
+  `integration`, esclusa dalla CI, gira sul checkpoint locale in ~9 s):
+  1. mask causale 4D esplicita ≡ path causale di libreria (convenzione additiva ok);
+  2. la mask bottleneck produce logits diversi dalla causale (non viene ignorata);
+  3. controllo positivo: editando il contesto (a livello di ID) i logits
+     post-anchor cambiano → la rotta legittima via anchor esiste;
+  4. controllo negativo: bloccando anche la chiave dell'anchor, i logits
+     post-anchor sono ESATTAMENTE invarianti all'edit del contesto → **zero
+     leak attorno al bottleneck**;
+  5. batch right-padded senza NaN; 6. smoke del reference decoder.
+  Nota: verificata l'implementazione attention di default (SDPA); il path
+  eager non è testato — se si cambia `attn_implementation`, ritestare.
+- **Fix in `data_contract.py`**:
+  1. `upgrade_legacy_example` ora inferisce `label_kind` dal valore di `label`
+     quando assente (vocabolari disgiunti) — le righe v0 con label senza kind
+     avrebbero fatto crashare l'intera rebuild;
+  2. `assert_disjoint` accetta `pairs` extra: ora `prepare_dataset` impone
+     anche eval∩test=∅ (prima solo train-vs-tutti; probe resta escluso perché
+     vista derivata di eval+test);
+  3. `answer_idx=True` non passa più la validazione MCQ (bool è int in Python);
+  4. I/O `CohortSelection` con encoding UTF-8 esplicito;
+  5. la chiave legacy `distance` viene sempre rimossa (prima poteva
+     sopravvivere accanto a `distance_target_tokens`).
+- **Fix in `bottleneck.py`**: guardia contro righe di query completamente
+  mascherate (softmax tutta −inf → NaN che avvelena anche le posizioni reali
+  via 0·NaN=NaN nei layer successivi). Succede col LEFT padding → ora
+  rifiutato con errore esplicito; la pipeline richiede right padding.
+- **Non-difetti verificati**: la strategia boundary di `option_loglik`
+  (prefisso comune tra tokenizzazioni) è corretta; l'esclusione delle
+  annotazioni MCQ da `example_id` è intenzionale (ri-annotare non cambia
+  l'identità); l'overlap probe/eval/test nel manifest è by design.
+- **Nota minore aperta**: `_git_state()` dipende dalla CWD (manifest costruiti
+  fuori dalla root registrerebbero il git sbagliato o None) — accettato per ora.
+- **Esito suite**: 40 passed (34 unit + 6 integration), ruff pulito.
+  Prossimo gate: build dati v2 su fixture (`prepare_dataset.py`).
+
 ## Template per nuove decisioni
 
 ```

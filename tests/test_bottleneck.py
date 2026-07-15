@@ -57,6 +57,15 @@ class TestMaskTruthTable:
         with pytest.raises(LayoutError):
             build_bottleneck_mask(torch.ones(1, 4), torch.tensor([-1]))
 
+    def test_left_padding_rejected(self):
+        # left padding creates query rows with zero allowed keys -> NaN poison;
+        # the builder must refuse instead of silently producing them
+        attn2d = torch.tensor([[0, 0, 1, 1, 1, 1]])
+        with pytest.raises(LayoutError, match="right padding"):
+            build_bottleneck_mask(attn2d, torch.tensor([3]))
+        with pytest.raises(LayoutError, match="right padding"):
+            build_causal_mask(attn2d)
+
     def test_causal_control_mask_differs_only_pre_anchor(self):
         attn2d = torch.ones(1, 8)
         c = 3

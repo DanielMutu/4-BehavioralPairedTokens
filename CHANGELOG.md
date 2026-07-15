@@ -67,11 +67,23 @@ questo file traccia **cosa è cambiato, file per file, e cosa è verificato**.
   (le K/V dell'anchor sono il suo solo embedding) → portato a 2 layer, il
   minimo perché la rotta legittima esista. Dettagli: decisions.md 2026-07-15.
 
+- **Review completata di `data_contract.py` e `bottleneck.py`** (2026-07-15):
+  5 difetti corretti (inferenza `label_kind` su upgrade legacy — avrebbe
+  rotto la rebuild; `assert_disjoint` con `pairs` → eval∩test=∅ imposto;
+  `answer_idx` bool respinto; I/O cohort UTF-8; chiave legacy `distance`
+  sempre rimossa) + guardia NaN in `bottleneck.py` (left padding rifiutato).
+  Aggiunta `tests/test_qwen_integration.py` (6 test, marker `integration`,
+  esclusi dalla CI): **la mask 4D è onorata da transformers 5.10.2 su Qwen2
+  reale, zero leak attorno al bottleneck**. Suite: 40 passed.
+  Dettagli: decisions.md 2026-07-15.
+
 ### Known issues / debito aperto
 
 1. ~~pytest mai rilanciato dopo l'ultimo fix → stato suite ignoto (gate 0)~~
    **risolto 2026-07-15**: 31 passed, lint pulito (v. Fixed).
 2. `data_contract.py` e `prepare_dataset.py` v2 mai eseguiti nemmeno su fixture.
+   *(aggiornamento: i moduli sono ora coperti da review + 40 test, ma la
+   build su fixture/dati reali resta il prossimo gate)*
 3. `requirements.txt` incoerente con `uv.lock` su torch.
 4. Codice generato via backend OpenRouter → review integrale richiesta di
    `data_contract.py` e `bottleneck.py` (un errore di sintassi già trovato).

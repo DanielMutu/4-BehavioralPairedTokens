@@ -116,7 +116,8 @@ def validate_mcq(meta: dict, where: str = "") -> None:
         raise ContractError(f"{where}: options must be {N_MCQ_OPTIONS} non-empty strings")
     if len({o.strip().lower() for o in options}) != N_MCQ_OPTIONS:
         raise ContractError(f"{where}: duplicate MCQ options")
-    if not isinstance(answer_idx, int) or not 0 <= answer_idx < N_MCQ_OPTIONS:
+    if (isinstance(answer_idx, bool) or not isinstance(answer_idx, int)
+            or not 0 <= answer_idx < N_MCQ_OPTIONS):
         raise ContractError(f"{where}: answer_idx must be an int in [0,{N_MCQ_OPTIONS - 1}]")
 
 
@@ -201,10 +202,17 @@ def upgrade_legacy_example(example: dict, where: str = "") -> dict:
         if example.get("type") == "B" and isinstance(legacy, int) and legacy > 0:
             meta["distance_target_tokens"] = legacy
             meta["filler_word_count"] = len((example.get("filler") or "").split())
-    if example.get("type") != "B":
-        meta.pop("distance", None)
-    if meta.get("label") is None:
+    meta.pop("distance", None)  # never keep the ambiguous legacy key around
+    label = meta.get("label")
+    if label is None:
         meta["label_kind"] = None
+    elif meta.get("label_kind") not in LABEL_KINDS:
+        # v0 rows carried `label` without `label_kind`; the vocabularies are
+        # disjoint, so the kind is recoverable from the value itself.
+        for kind, vocab in LABEL_KINDS.items():
+            if label in vocab:
+                meta["label_kind"] = kind
+                break
     # v0 kept invalid MCQ shapes (e.g. 5 options); drop the annotation rather
     # than rejecting the whole row — MCQs are eval-side metadata.
     try:
@@ -261,18 +269,25 @@ def save_jsonl_atomic(examples: Iterable[dict], path: str | Path) -> str:
 
 def assert_disjoint(splits: dict[str, list[dict]],
                     protected: str = "train",
+                    pairs: Iterable[tuple[str, str]] = (),
                     key: Callable[[dict], str] = lambda ex: ex["content_id"]) -> None:
-    """Fail if any non-train split shares a content_id with `protected`."""
-    protected_ids = {key(ex) for ex in splits[protected]}
-    for name, rows in splits.items():
-        if name == protected:
-            continue
-        overlap = protected_ids & {key(ex) for ex in rows}
+    """Fail if any non-train split shares a content_id with `protected`.
+
+    `pairs` adds extra pairwise checks (e.g. [("eval", "test")]). probe is
+    deliberately NOT in `pairs` by default: it is a derived view of eval+test.
+    """
+    def ids(name: str) -> set[str]:
+        return {key(ex) for ex in splits[name]}
+
+    checks = [(protected, other) for other in splits if other != protected]
+    checks += [p for p in pairs if p[0] in splits and p[1] in splits]
+    for a, b in checks:
+        overlap = ids(a) & ids(b)
         if overlap:
             sample = sorted(overlap)[:5]
             raise ContractError(
                 f"split leakage: {len(overlap)} content_ids shared between "
-                f"'{protected}' and '{name}' (e.g. {sample})")
+                f"'{a}' and '{b}' (e.g. {sample})")
 
 
 def overlap_report(splits: dict[str, list[dict]]) -> dict[str, int]:
@@ -385,8 +400,9 @@ class CohortSelection:
 
     def save(self, path: str | Path) -> None:
         Path(path).parent.mkdir(parents=True, exist_ok=True)
-        Path(path).write_text(json.dumps(dataclasses.asdict(self), indent=2))
+        Path(path).write_text(json.dumps(dataclasses.asdict(self), indent=2),
+                              encoding="utf-8")
 
     @classmethod
     def load(cls, path: str | Path) -> "CohortSelection":
-        return cls(**json.loads(Path(path).read_text()))
+        return cls(**json.loads(Path(path).read_text(encoding="utf-8")))

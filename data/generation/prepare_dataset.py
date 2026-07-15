@@ -77,7 +77,9 @@ def build_splits(synthetic: list[dict], heldout_style: list[dict],
 
     splits = {"train": train_set, "eval": eval_set,
               "test": test_set, "probe": probe_set}
-    assert_disjoint(splits, protected="train")
+    # probe legitimately overlaps eval/test (derived view); eval vs test must
+    # still be disjoint on top of the train-vs-everything guarantee.
+    assert_disjoint(splits, protected="train", pairs=[("eval", "test")])
     return splits
 
 

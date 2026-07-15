@@ -123,6 +123,17 @@ class TestLegacyUpgrade:
         up = upgrade_legacy_example(legacy)
         assert "options" not in up["meta"]
 
+    def test_v0_label_without_kind_gets_inferred(self):
+        # v0 rows carried `label` but no `label_kind`; vocabularies are
+        # disjoint so the kind must be recovered, not crash the rebuild
+        legacy = {
+            "type": "A", "context": "ctx", "target": "tgt", "filler": "",
+            "meta": {"source": "synthetic", "generator": "g",
+                     "label": "science"},
+        }
+        up = upgrade_legacy_example(legacy)
+        assert up["meta"]["label_kind"] == "topic"
+
 
 class TestIOAndSplits:
     def test_jsonl_roundtrip_and_line_errors(self, tmp_path):
@@ -141,6 +152,14 @@ class TestIOAndSplits:
                   "test": [shared, make_example(3)]}
         with pytest.raises(ContractError, match="leakage"):
             assert_disjoint(splits)
+
+    def test_assert_disjoint_extra_pairs(self):
+        shared = make_example(1)
+        splits = {"train": [make_example(2)],
+                  "eval": [shared], "test": [shared]}
+        assert_disjoint(splits)  # train is clean -> passes without pairs
+        with pytest.raises(ContractError, match="'eval' and 'test'"):
+            assert_disjoint(splits, pairs=[("eval", "test")])
 
     def test_overlap_report_counts(self):
         a, b, c = make_example(1), make_example(2), make_example(3)
