@@ -58,9 +58,19 @@ questo file traccia **cosa è cambiato, file per file, e cosa è verificato**.
   corretto + caveat: i ✅ T1/T2 non dimostrano compressione sotto la v0
   (attention non mascherata).
 
+### Fixed (2026-07-15, dopo il primo push)
+
+- **Gate 0 chiuso: suite verde (31 passed) + ruff pulito.** Il primo run CI
+  falliva al lint (4 errori banali, corretti). Il test rosso
+  `test_gradient_reaches_context_only_via_anchor` era mal posto:
+  `TinyAttention` a 1 layer non offre *alcuna* rotta contesto→post-anchor
+  (le K/V dell'anchor sono il suo solo embedding) → portato a 2 layer, il
+  minimo perché la rotta legittima esista. Dettagli: decisions.md 2026-07-15.
+
 ### Known issues / debito aperto
 
-1. pytest mai rilanciato dopo l'ultimo fix → stato suite ignoto (**gate 0**).
+1. ~~pytest mai rilanciato dopo l'ultimo fix → stato suite ignoto (gate 0)~~
+   **risolto 2026-07-15**: 31 passed, lint pulito (v. Fixed).
 2. `data_contract.py` e `prepare_dataset.py` v2 mai eseguiti nemmeno su fixture.
 3. `requirements.txt` incoerente con `uv.lock` su torch.
 4. Codice generato via backend OpenRouter → review integrale richiesta di

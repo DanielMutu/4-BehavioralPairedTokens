@@ -185,7 +185,8 @@ def option_loglik_bottlenecked(model, tokenizer, prompt: str, option: str,
     prompt_ids = tokenizer(prompt, add_special_tokens=False)["input_ids"]
     # longest common prefix between prompt-only and full tokenization
     boundary = 0
-    for a, b in zip(prompt_ids, full_ids):
+    # strict=False: prompt_ids is expected to be shorter than full_ids
+    for a, b in zip(prompt_ids, full_ids, strict=False):
         if a != b:
             break
         boundary += 1

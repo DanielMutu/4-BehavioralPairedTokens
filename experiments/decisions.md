@@ -309,6 +309,29 @@ Ogni scelta non banale va registrata qui (regola CLAUDE.md).
   mascherata → copying attentivo possibile). Le voci storiche di questo log
   restano intoccate.
 
+## 2026-07-15 — Gate 0 chiuso: suite test verde (31 passed) + fix lint CI
+
+- **Contesto**: al primo push su GitHub la CI è fallita allo step lint (4
+  errori ruff banali: variabile `l`, import inutilizzato, `zip` senza
+  `strict`, `warnings.warn` senza `stacklevel`). Corretti tutti.
+- **Il test rosso era mal posto, non la mask**: il fallimento di
+  `test_gradient_reaches_context_only_via_anchor` era causato dal modellino
+  di test `TinyAttention` a **1 solo layer**: lì le K/V dell'anchor viste
+  dalle query successive sono solo `emb[anchor]`, quindi il contesto non ha
+  *nessuna* rotta verso le posizioni post-anchor — nemmeno quella legittima —
+  e il gradiente zero era il comportamento corretto. Portato a 2 layer
+  (minimo perché la rotta esista: layer 1 → l'anchor aggrega il contesto nel
+  proprio hidden state; layer 2 → le query post-anchor leggono le K/V
+  dell'anchor).
+- **Nota concettuale non banale**: l'informazione attraversa il bottleneck
+  solo tramite gli hidden state dell'anchor dei layer ≥ 1, mai al layer di
+  embedding. Coerente con la decisione 2026-06-09 di fare probing e
+  intervento causale su un layer intermedio, non sull'ultimo.
+- **Esito**: `pytest` 31 passed, `ruff` pulito → gate 0 PASS. Restano dovute:
+  la review severa di `data_contract.py`/`bottleneck.py` (i test provengono
+  dalla stessa sessione non fidata) e la prima esecuzione reale di
+  `prepare_dataset.py` su fixture (i gate successivi del piano).
+
 ## Template per nuove decisioni
 
 ```

@@ -32,7 +32,6 @@ from src.data_contract import (  # noqa: E402
     load_jsonl_validated,
     save_jsonl_atomic,
     seal_example,
-    upgrade_legacy_example,
     verify_manifest,
     write_manifest,
 )

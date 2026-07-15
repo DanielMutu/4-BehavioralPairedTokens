@@ -99,20 +99,35 @@ class TestLayoutValidation:
 
 
 class TinyAttention(torch.nn.Module):
-    """Single-head attention over one-hot embeddings: mask semantics checker."""
+    """Two stacked single-head attention layers: mask semantics checker.
 
-    def __init__(self, vocab: int, dim: int = 16):
+    Two layers are the MINIMUM for the bottleneck route to exist at all:
+    layer 1 lets the anchor position aggregate the context into its hidden
+    state; layer 2 lets post-anchor queries read that hidden state through
+    the anchor's K/V. With a single layer the anchor's K/V are just its own
+    embedding, so no context information can cross the bottleneck and the
+    gradient-flow test would (correctly) see zero gradient on the context.
+    """
+
+    def __init__(self, vocab: int, dim: int = 16, n_layers: int = 2):
         super().__init__()
         self.emb = torch.nn.Embedding(vocab, dim)
-        self.q = torch.nn.Linear(dim, dim)
-        self.k = torch.nn.Linear(dim, dim)
-        self.v = torch.nn.Linear(dim, dim)
+        self.layers = torch.nn.ModuleList(
+            torch.nn.ModuleDict({
+                "q": torch.nn.Linear(dim, dim),
+                "k": torch.nn.Linear(dim, dim),
+                "v": torch.nn.Linear(dim, dim),
+            })
+            for _ in range(n_layers)
+        )
 
     def forward(self, ids: torch.Tensor, mask4d: torch.Tensor) -> torch.Tensor:
         x = self.emb(ids)
-        att = self.q(x) @ self.k(x).transpose(1, 2) / 4.0
-        att = att + mask4d[:, 0]
-        return torch.softmax(att, dim=-1) @ self.v(x)
+        for lyr in self.layers:
+            att = lyr["q"](x) @ lyr["k"](x).transpose(1, 2) / 4.0
+            att = att + mask4d[:, 0]
+            x = torch.softmax(att, dim=-1) @ lyr["v"](x)
+        return x
 
 
 class TestInformationFlow:
@@ -127,7 +142,9 @@ class TestInformationFlow:
         loss = out[0, 7:].sum()          # loss only on post-anchor positions
         loss.backward()
         grad = model.emb.weight.grad.abs().sum(dim=1)
-        # context embeddings still get gradient (route: anchor query reads them)
+        # context embeddings still get gradient — the legitimate route:
+        # layer-1 anchor state aggregates the context, layer-2 post-anchor
+        # queries read the anchor's K/V (requires >= 2 layers, see TinyAttention)
         assert grad[:c].sum() > 0
 
         # but if the anchor key is also blocked, the context route disappears

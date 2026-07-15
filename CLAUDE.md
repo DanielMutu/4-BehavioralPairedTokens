@@ -347,8 +347,8 @@ progetto: **`proxy-an`** oppure crediti OpenRouter sufficienti; e verificare que
 - [ ] **Pipeline v2 — true bottleneck** (branch `feat/true-compress-bottleneck-v2`, vedi sezione sopra e `CHANGELOG.md`):
   - [x] Branch + salvaguardia artefatti v0 (SHA-256 rilevati)
   - [x] Ambiente riproducibile: `pyproject.toml` + `uv.lock` (torch cpu) + Dockerfile + CI
-  - [ ] **Suite test verde** ← PROSSIMO PASSO (ultima esecuzione parziale rossa, fix mai ri-verificato)
-  - [ ] Review del codice generato via proxy OpenRouter (`data_contract.py`, `bottleneck.py`)
+  - [x] **Suite test verde** (2026-07-15: 31 passed + ruff pulito; il test rosso era mal posto — TinyAttention a 1 layer non ha alcuna rotta contesto→post-anchor, portato a 2; vedi decisions.md)
+  - [ ] **Review del codice generato via proxy OpenRouter** (`data_contract.py`, `bottleneck.py`) ← PROSSIMO PASSO
   - [ ] Build dati v2: fixture → dati reali + manifest, zero overlap verificato
   - [ ] Toy gate bottleneck (code-recall, 6 controlli causali)
   - [ ] Ri-pin criterio gating Exp 2 (test set 540, split v2) in decisions.md
