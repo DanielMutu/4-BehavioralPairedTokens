@@ -696,6 +696,35 @@ opinare. Triage:
 - **Nota**: `exp1b_stability.json` assente dal repo perché il gate è ancora
   in esecuzione; verrà pushato col verdetto.
 
+## 2026-07-16 — Triage quarto feedback esterno + dichiarazione condizione "forced relay"
+
+Quarto feedback: in gran parte sintesi fedele dei nostri documenti (buon
+segno: il repo si spiega da solo), con un errore fattuale, letture
+pre-riallineamento e due spunti nuovi accolti.
+
+- **ACCOLTO — condizione diagnostica "forced relay" per Exp 2** (dichiarata
+  ORA, a risultati non visti, non-gating): filler che vedono l'anchor ma
+  `[RECALL]` cieco sull'anchor — l'inverso dell'anchor-only. Le due
+  condizioni insieme chiudono la matrice del relay: anchor-only misura la
+  persistenza del singolo stato, forced-relay misura l'informazione che
+  sopravvive alla catena di hop. Totale condizioni Exp 2: 8 gating
+  pre-registrate + 2 diagnostiche (anchor-medio, forced-relay).
+- **ACCOLTO (backlog Exp 3) — probing su fatti specifici**: oltre a
+  sentiment/topic, probe su contenuti puntuali del contesto ("quale
+  città?") — più vicino a ciò che il recall deve trasferire davvero.
+- **Errore fattuale a verbale**: "anchor = 896×16 = 14336 dimensioni,
+  16 layer" confonde dimensioni (896 per layer), bit (896 dim × 16 bit
+  fp16 = 14336 bit di capacità grezza) e numero di layer (Qwen2.5-0.5B ne
+  ha 24, non 16).
+- **Letture stantie**: ripete l'attribuzione "dati insufficienti" del toy
+  tent. 1 già corretta dall'errata (voce precedente) e cita come stato
+  corrente sezioni documentali già storicizzate in `896ce92` — il feedback
+  ha osservato il repo pre-riallineamento.
+- **Convergenze** (già nostre posizioni): toy = prova del canale, non della
+  compressione semantica (mechanism.md §10); rischio esito marginale di
+  Exp 2 (voce 2026-06-09); monitoraggio varianza hidden (7.5→9.6) da
+  proseguire in un eventuale Exp 1c.
+
 ## Template per nuove decisioni
 
 ```
