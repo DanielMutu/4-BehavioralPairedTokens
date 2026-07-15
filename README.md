@@ -17,9 +17,11 @@ Stato file per file: **[CHANGELOG.md](CHANGELOG.md)**.
 >   test=541/probe=304, test tutto MCQ-annotato)
 > - Toy gate code-recall: tent. 1 FAIL formale ma controlli causali PASS;
 >   tent. 2 in corso
-> - **Gate bloccante attuale**: integrazione bottleneck end-to-end in
->   train/eval/probe (P0 — vedi `docs/external_review_2026-07-15.md`);
->   fino ad allora `src/train.py` e `src/eval.py` restano v0-style
+> - **P0 completato**: un solo percorso bottleneck per
+>   train/eval/probe/intervention (`attention_mode` in config/checkpoint),
+>   test anti-regressione con mask-spy su ogni entry point — 51 test verdi
+> - **Gate bloccanti attuali**: toy gate PASS + ri-pin criterio Exp 2,
+>   poi Exp 1b
 > - Dettagli: `CLAUDE.md` → "Pipeline v2", `CHANGELOG.md`, `experiments/decisions.md`
 
 ## Setup

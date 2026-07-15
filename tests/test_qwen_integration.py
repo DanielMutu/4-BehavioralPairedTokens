@@ -154,3 +154,43 @@ class TestBatchAndGeneration:
         text = generate_bottlenecked(model, tokenizer, CONTEXT_A + SUFFIX,
                                      max_new_tokens=4)
         assert isinstance(text, str)
+
+
+class TestEndToEndSharedPath:
+    """P0 gate, integration level: a real train step and the eval entry points
+    all run through the shared bottleneck path on actual Qwen."""
+
+    def test_train_step_and_eval_through_bottleneck(self, qwen, tmp_path):
+        import json
+
+        from src.dataset import BehavioralTokenDataset
+        from src.eval import eval_mcq, generate_recall
+        from src.train import compute_losses, forward_batch
+        from tests.conftest import make_example
+
+        model, tokenizer = qwen
+        cfg = TrainConfig(batch_size=2)
+        rows = [make_example(i, ex_type=t) for i, t in enumerate("AB")]
+        data = tmp_path / "fixture.jsonl"
+        data.write_text("\n".join(json.dumps(r) for r in rows) + "\n")
+
+        ds = BehavioralTokenDataset(str(data), tokenizer, cfg)
+        batch = ds.collate([ds[0], ds[1]])
+
+        # one real forward+backward through the shared path
+        was_training = model.training
+        model.train()
+        out = forward_batch(model, batch, cfg)
+        loss, metrics = compute_losses(out, batch, cfg.lambda_c)
+        loss.backward()
+        model.zero_grad(set_to_none=True)
+        model.train(was_training)
+        assert metrics["loss_ce"] > 0 and not torch.isnan(loss)
+
+        # eval entry points on the same fixture
+        model.eval()
+        text = generate_recall(model, tokenizer, rows[0], torch.device("cpu"),
+                               max_new_tokens=3)
+        assert isinstance(text, str)
+        res = eval_mcq(model, tokenizer, rows[:1], torch.device("cpu"))
+        assert res["n_mcq"] == 1

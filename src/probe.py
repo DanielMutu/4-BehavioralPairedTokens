@@ -27,6 +27,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split
 from tqdm import tqdm
 
+from src.bottleneck import forward_bottlenecked
 from src.config import COMPRESS_TOKEN, RECALL_TOKEN, TrainConfig
 from src.dataset import render_prompt
 from src.eval import load_for_eval
@@ -38,8 +39,14 @@ CONDITIONS = ["compress", "random_context", "recall_untrained",
 
 @torch.no_grad()
 def extract_states(model, tokenizer, examples: list[dict], device,
-                   mode: str, layer: int = -1, rng: np.random.Generator | None = None):
-    """Hidden state at a position chosen by `mode`, plus probe labels."""
+                   mode: str, layer: int = -1, rng: np.random.Generator | None = None,
+                   attention_mode: str = "compress_bottleneck"):
+    """Hidden state at a position chosen by `mode`, plus probe labels.
+
+    States are produced under the SAME attention regime as training/recall
+    (P0 gate): probing representations from a different regime would measure
+    a different mechanism.
+    """
     rng = rng or np.random.default_rng(42)
     compress_id = tokenizer.convert_tokens_to_ids(COMPRESS_TOKEN)
     recall_id = tokenizer.convert_tokens_to_ids(RECALL_TOKEN)
@@ -65,8 +72,10 @@ def extract_states(model, tokenizer, examples: list[dict], device,
         else:
             raise ValueError(mode)
 
-        h = model(input_ids=ids, output_hidden_states=True).hidden_states[layer]
-        feats.append(h[0, pos].float().cpu().numpy())
+        out = forward_bottlenecked(model, ids, torch.ones_like(ids),
+                                   torch.tensor([c_pos], device=device),
+                                   mode=attention_mode, output_hidden_states=True)
+        feats.append(out.hidden_states[layer][0, pos].float().cpu().numpy())
         labels.append(ex["meta"]["label"])
 
     X, y = np.stack(feats), np.array(labels)
@@ -97,6 +106,10 @@ def main():
     p.add_argument("--checkpoint", required=True, help="trained adapter dir")
     p.add_argument("--model-name", type=str, default="Qwen/Qwen2.5-0.5B")
     p.add_argument("--layer", type=int, default=-1)
+    p.add_argument("--label-kind", required=True, choices=["sentiment", "topic"],
+                   help="probe task; mixing label kinds would corrupt the probe")
+    p.add_argument("--attention-mode", type=str, default="compress_bottleneck",
+                   choices=["compress_bottleneck", "full_context"])
     p.add_argument("--max-samples", type=int, default=500)
     p.add_argument("--out", type=str, default="results/exp3_probing/probe_results.json")
     args = p.parse_args()
@@ -105,9 +118,11 @@ def main():
     cfg = TrainConfig(model_name=args.model_name)
     device = resolve_device("auto")
     examples = [ex for ex in load_jsonl(args.data, max_examples=args.max_samples)
-                if (ex.get("meta") or {}).get("label")]
+                if (ex.get("meta") or {}).get("label")
+                and (ex.get("meta") or {}).get("label_kind") == args.label_kind]
     if len(examples) < 20:
-        raise SystemExit(f"Only {len(examples)} labeled examples — need more.")
+        raise SystemExit(f"Only {len(examples)} labeled {args.label_kind} "
+                         f"examples — need more.")
 
     trained, tokenizer = load_for_eval(args.checkpoint, cfg, device)
     untrained, _ = load_for_eval(None, cfg, device)  # base + tokens, no fine-tune
@@ -116,7 +131,8 @@ def main():
     probe_artifacts = None
     for mode in CONDITIONS:
         model = untrained if mode == "recall_untrained" else trained
-        X, y = extract_states(model, tokenizer, examples, device, mode, args.layer)
+        X, y = extract_states(model, tokenizer, examples, device, mode,
+                              args.layer, attention_mode=args.attention_mode)
         res = run_probe(X, y)
         clf = res.pop("_clf")
         results[mode] = res
@@ -134,6 +150,12 @@ def main():
             for m in CONDITIONS if m != "compress"),
         "copying_suspect": acc["pre_compress"] >= acc["compress"] - 0.05,
         "margin_used": margin,
+    }
+    results["provenance"] = {
+        "attention_mode": args.attention_mode,
+        "label_kind": args.label_kind,
+        "layer": args.layer,
+        "checkpoint": args.checkpoint,
     }
 
     out = Path(args.out)

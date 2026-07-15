@@ -23,6 +23,7 @@ from pathlib import Path
 import torch
 from tqdm import tqdm
 
+from src.bottleneck import generate_bottlenecked, option_loglik_bottlenecked
 from src.config import TrainConfig
 from src.dataset import render_prompt
 from src.model import setup_model_and_tokenizer
@@ -37,6 +38,20 @@ def load_for_eval(checkpoint: str | None, cfg: TrainConfig, device):
         model = PeftModel.from_pretrained(model, checkpoint)
     model.to(device).eval()
     return model, tokenizer
+
+
+def checkpoint_attention_mode(checkpoint: str | None, default: str) -> str:
+    """The attention regime an artifact was created under lives in its config —
+    results must never silently assume a different one."""
+    if checkpoint:
+        cfg_path = Path(checkpoint) / "config.json"
+        if not cfg_path.exists():
+            cfg_path = Path(checkpoint).parent / "config.json"
+        if cfg_path.exists():
+            data = json.loads(cfg_path.read_text())
+            if "attention_mode" in data:
+                return data["attention_mode"]
+    return default
 
 
 # ---------------------------------------------------------------- wikitext
@@ -63,13 +78,16 @@ def wikitext_perplexity(model, tokenizer, device, max_samples: int = 200,
 
 @torch.no_grad()
 def generate_recall(model, tokenizer, example: dict, device,
-                    max_new_tokens: int = 160) -> str:
-    prompt = render_prompt(example)
-    inputs = tokenizer(prompt, return_tensors="pt", add_special_tokens=False).to(device)
-    out = model.generate(**inputs, max_new_tokens=max_new_tokens, do_sample=False,
-                         pad_token_id=tokenizer.pad_token_id)
-    return tokenizer.decode(out[0][inputs["input_ids"].shape[1]:],
-                            skip_special_tokens=True).strip()
+                    max_new_tokens: int = 160,
+                    mode: str = "compress_bottleneck") -> str:
+    """Greedy recall through the shared bottleneck path (P0 gate).
+
+    `mode="full_context"` is the explicit v0-style control — never a default
+    fallback. Uses the reference full-recomputation decoder.
+    """
+    return generate_bottlenecked(model, tokenizer, render_prompt(example),
+                                 max_new_tokens=max_new_tokens, mode=mode,
+                                 device=device)
 
 
 def _normalize(s: str) -> str:
@@ -93,17 +111,26 @@ def rouge_l(generated: str, reference: str) -> float:
     return scorer.score(reference, generated)["rougeL"].fmeasure
 
 
-def eval_recall(model, tokenizer, examples: list[dict], device) -> dict:
+def example_distance(ex: dict) -> int:
+    """Distance bucket for Exp 2. v2 contract: type B rows MUST carry
+    distance_target_tokens; A/C are distance 0 by construction. A missing
+    field on a B row is a contract violation — fail loudly, never bucket-0."""
+    if ex.get("type") == "B":
+        return int(ex["meta"]["distance_target_tokens"])
+    return 0
+
+
+def eval_recall(model, tokenizer, examples: list[dict], device,
+                mode: str = "compress_bottleneck") -> dict:
     fact_scores, rouge_scores, per_distance = [], [], {}
     for ex in tqdm(examples, desc="recall eval"):
-        gen = generate_recall(model, tokenizer, ex, device)
+        gen = generate_recall(model, tokenizer, ex, device, mode=mode)
         facts = (ex.get("meta") or {}).get("facts", [])
         f = fact_retrieval_accuracy(gen, facts)
         r = rouge_l(gen, ex["target"])
         if not math.isnan(f):
             fact_scores.append(f)
-            dist = (ex.get("meta") or {}).get("distance", 0)
-            per_distance.setdefault(dist, []).append(f)
+            per_distance.setdefault(example_distance(ex), []).append(f)
         if not math.isnan(r):
             rouge_scores.append(r)
 
@@ -122,8 +149,14 @@ def eval_recall(model, tokenizer, examples: list[dict], device) -> dict:
 # ---------------------------------------------------------------- MCQ
 
 @torch.no_grad()
-def option_loglik(model, tokenizer, prompt: str, option: str, device) -> float:
-    """Mean per-token log-likelihood of `option` given `prompt`."""
+def option_loglik_full_context(model, tokenizer, prompt: str, option: str,
+                               device) -> float:
+    """Mean per-token log-likelihood under ORDINARY causal attention.
+
+    Only for prompts without behavioral tokens (WikiText/HellaSwag/MMLU
+    stability checks). Task prompts containing [COMPRESS] must go through
+    option_loglik_bottlenecked instead.
+    """
     p_ids = tokenizer(prompt, add_special_tokens=False)["input_ids"]
     o_ids = tokenizer(option, add_special_tokens=False)["input_ids"]
     ids = torch.tensor([p_ids + o_ids], device=device)
@@ -133,7 +166,8 @@ def option_loglik(model, tokenizer, prompt: str, option: str, device) -> float:
     return -out.loss.item()
 
 
-def eval_mcq(model, tokenizer, examples: list[dict], device) -> dict:
+def eval_mcq(model, tokenizer, examples: list[dict], device,
+             mode: str = "compress_bottleneck") -> dict:
     """examples need meta.question, meta.options, meta.answer_idx."""
     correct, total = 0, 0
     for ex in tqdm(examples, desc="mcq eval"):
@@ -141,7 +175,8 @@ def eval_mcq(model, tokenizer, examples: list[dict], device) -> dict:
         if "options" not in meta:
             continue
         prompt = render_prompt(ex) + f"Question: {meta['question']}\nAnswer: "
-        scores = [option_loglik(model, tokenizer, prompt, opt, device)
+        scores = [option_loglik_bottlenecked(model, tokenizer, prompt, opt,
+                                             device, mode=mode)
                   for opt in meta["options"]]
         correct += int(scores.index(max(scores)) == meta["answer_idx"])
         total += 1
@@ -159,10 +194,15 @@ def eval_mcq(model, tokenizer, examples: list[dict], device) -> dict:
 
 
 def _mc_accuracy(model, tokenizer, items, device, desc: str) -> float:
-    """items: list of (prompt, options, answer_idx). Argmax mean-token loglik."""
+    """items: list of (prompt, options, answer_idx). Argmax mean-token loglik.
+
+    Deliberately full-context: these are general-capability benchmarks with no
+    behavioral tokens in the prompt (see module docstring / decisions.md).
+    """
     correct = 0
     for prompt, options, answer_idx in tqdm(items, desc=desc):
-        scores = [option_loglik(model, tokenizer, prompt, opt, device) for opt in options]
+        scores = [option_loglik_full_context(model, tokenizer, prompt, opt, device)
+                  for opt in options]
         correct += int(scores.index(max(scores)) == answer_idx)
     return correct / len(items) if items else float("nan")
 
@@ -213,6 +253,10 @@ def main():
     p.add_argument("--model-name", type=str, default="Qwen/Qwen2.5-0.5B")
     p.add_argument("--data", type=str, help="jsonl for recall/mcq tasks")
     p.add_argument("--max-samples", type=int, default=200)
+    p.add_argument("--attention-mode", type=str, default=None,
+                   choices=["compress_bottleneck", "full_context"],
+                   help="override; default = the mode saved in the checkpoint "
+                        "config (or compress_bottleneck for the base model)")
     p.add_argument("--out", type=str, default=None, help="results json path")
     args = p.parse_args()
 
@@ -220,18 +264,30 @@ def main():
     cfg = TrainConfig(model_name=args.model_name)
     device = resolve_device("auto")
     model, tokenizer = load_for_eval(args.checkpoint, cfg, device)
+    mode = args.attention_mode or checkpoint_attention_mode(
+        args.checkpoint, cfg.attention_mode)
 
     if args.task == "wikitext":
         results = {"wikitext2_perplexity": wikitext_perplexity(
             model, tokenizer, device, max_samples=args.max_samples)}
+        mode = "full_context"  # general-capability metric, by protocol
     elif args.task == "downstream":
         results = eval_downstream(model, tokenizer, device, max_samples=args.max_samples)
+        mode = "full_context"  # general-capability metric, by protocol
     else:
         examples = load_jsonl(args.data, max_examples=args.max_samples)
         fn = eval_recall if args.task == "recall" else eval_mcq
-        results = fn(model, tokenizer, examples, device)
+        results = fn(model, tokenizer, examples, device, mode=mode)
 
+    # provenance: every result must declare the regime it was produced under
     results["checkpoint"] = args.checkpoint or "base"
+    results["attention_mode"] = mode
+    results["decoder"] = "full_recomputation"
+    manifest_path = Path("data/processed/manifest.json")
+    if args.data and manifest_path.exists():
+        import hashlib
+        results["dataset_manifest_sha256"] = hashlib.sha256(
+            manifest_path.read_bytes()).hexdigest()
     print(json.dumps(results, indent=2))
     if args.out:
         Path(args.out).parent.mkdir(parents=True, exist_ok=True)

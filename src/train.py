@@ -23,12 +23,35 @@ from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
 from transformers import get_linear_schedule_with_warmup
 
+from src.bottleneck import forward_bottlenecked
 from src.config import TrainConfig
 from src.dataset import make_dataloader
 from src.model import setup_model_and_tokenizer
 from src.utils import resolve_device, set_seed
 
 COLLAPSE_VARIANCE_THRESHOLD = 1e-4
+
+
+def forward_batch(model, batch: dict, cfg: TrainConfig):
+    """The ONE forward path for training and internal eval (P0 gate).
+
+    Everything goes through forward_bottlenecked so the attention regime is
+    always cfg.attention_mode — never an accidental ordinary-causal call.
+    """
+    return forward_bottlenecked(
+        model, batch["input_ids"], batch["attention_mask"],
+        batch["compress_pos"], labels=batch["labels"],
+        mode=cfg.attention_mode, output_hidden_states=True)
+
+
+def should_step(batch_index: int, n_batches: int, grad_accum: int) -> bool:
+    """Optimizer-step predicate: every grad_accum batches AND at epoch end,
+    so the final partial accumulation window is never dropped."""
+    return (batch_index + 1) % grad_accum == 0 or (batch_index + 1) == n_batches
+
+
+def optimizer_steps_per_epoch(n_batches: int, grad_accum: int) -> int:
+    return math.ceil(n_batches / grad_accum)
 
 
 def gather_token_states(hidden: torch.Tensor, positions: torch.Tensor) -> torch.Tensor:
@@ -71,14 +94,13 @@ def compute_losses(out, batch, lambda_c: float):
 
 
 @torch.no_grad()
-def evaluate(model, loader, device, lambda_c: float) -> dict:
+def evaluate(model, loader, device, cfg: TrainConfig) -> dict:
     model.eval()
     totals, n = {}, 0
     for batch in loader:
         batch = {k: v.to(device) for k, v in batch.items()}
-        out = model(input_ids=batch["input_ids"], attention_mask=batch["attention_mask"],
-                    labels=batch["labels"], output_hidden_states=True)
-        _, metrics = compute_losses(out, batch, lambda_c)
+        out = forward_batch(model, batch, cfg)
+        _, metrics = compute_losses(out, batch, cfg.lambda_c)
         for k, v in metrics.items():
             if not math.isnan(v):
                 totals[k] = totals.get(k, 0.0) + v
@@ -112,7 +134,7 @@ def train(cfg: TrainConfig) -> None:
 
     params = [p for p in model.parameters() if p.requires_grad]
     optimizer = torch.optim.AdamW(params, lr=cfg.lr, weight_decay=cfg.weight_decay)
-    total_steps = max(1, len(train_loader) * cfg.epochs // cfg.grad_accum)
+    total_steps = optimizer_steps_per_epoch(len(train_loader), cfg.grad_accum) * cfg.epochs
     scheduler = get_linear_schedule_with_warmup(
         optimizer, int(total_steps * cfg.warmup_ratio), total_steps)
 
@@ -131,13 +153,11 @@ def train(cfg: TrainConfig) -> None:
         pbar = tqdm(train_loader, desc=f"epoch {epoch + 1}/{cfg.epochs}")
         for i, batch in enumerate(pbar):
             batch = {k: v.to(device) for k, v in batch.items()}
-            out = model(input_ids=batch["input_ids"],
-                        attention_mask=batch["attention_mask"],
-                        labels=batch["labels"], output_hidden_states=True)
+            out = forward_batch(model, batch, cfg)
             loss, metrics = compute_losses(out, batch, cfg.lambda_c)
             (loss / cfg.grad_accum).backward()
 
-            if (i + 1) % cfg.grad_accum == 0:
+            if should_step(i, len(train_loader), cfg.grad_accum):
                 torch.nn.utils.clip_grad_norm_(params, cfg.max_grad_norm)
                 optimizer.step()
                 scheduler.step()
@@ -160,7 +180,7 @@ def train(cfg: TrainConfig) -> None:
                               f"lower lambda_c.")
 
                 if step % cfg.eval_steps == 0:
-                    eval_metrics = evaluate(model, eval_loader, device, cfg.lambda_c)
+                    eval_metrics = evaluate(model, eval_loader, device, cfg)
                     for k, v in eval_metrics.items():
                         writer.add_scalar(k, v, step)
                     if wandb:
@@ -173,7 +193,7 @@ def train(cfg: TrainConfig) -> None:
                     save_checkpoint(model, tokenizer, cfg, "last")
 
     # final eval so short runs (debug) still produce a best checkpoint
-    eval_metrics = evaluate(model, eval_loader, device, cfg.lambda_c)
+    eval_metrics = evaluate(model, eval_loader, device, cfg)
     for k, v in eval_metrics.items():
         writer.add_scalar(k, v, step)
     if eval_metrics.get("eval/loss_ce", float("inf")) < best_eval:
@@ -199,12 +219,14 @@ def parse_args() -> TrainConfig:
     p.add_argument("--batch-size", type=int)
     p.add_argument("--lr", type=float)
     p.add_argument("--lambda-c", type=float, dest="lambda_c")
+    p.add_argument("--attention-mode", type=str, dest="attention_mode",
+                   choices=["compress_bottleneck", "full_context"])
     p.add_argument("--use-wandb", action="store_true")
     args = p.parse_args()
 
     cfg = TrainConfig.load(args.config) if args.config else TrainConfig()
     for key in ("run_name", "model_name", "train_file", "eval_file",
-                "epochs", "batch_size", "lr", "lambda_c"):
+                "epochs", "batch_size", "lr", "lambda_c", "attention_mode"):
         val = getattr(args, key)
         if val is not None:
             setattr(cfg, key, val)

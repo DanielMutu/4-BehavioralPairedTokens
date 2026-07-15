@@ -26,7 +26,9 @@ from tqdm import tqdm
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-from src.eval import fact_retrieval_accuracy, option_loglik  # noqa: E402
+# Exp 0 is the PROMPT baseline: plain-text prompts, no behavioral tokens ->
+# explicitly the full-context scorer (see P0 renaming, decisions.md 2026-07-15)
+from src.eval import fact_retrieval_accuracy, option_loglik_full_context  # noqa: E402
 from src.utils import load_jsonl, resolve_device, set_seed  # noqa: E402
 
 SUMMARIZE_PROMPT = (
@@ -52,7 +54,8 @@ def generate(model, tokenizer, prompt: str, device, max_new_tokens: int = 160) -
 
 
 def mcq_pick(model, tokenizer, prompt: str, options: list[str], device) -> int:
-    scores = [option_loglik(model, tokenizer, prompt, opt, device) for opt in options]
+    scores = [option_loglik_full_context(model, tokenizer, prompt, opt, device)
+              for opt in options]
     return scores.index(max(scores))
 
 

@@ -501,6 +501,52 @@ Ricevuta una review esterna statica del repo (salvata integralmente in
 - **Fix documentale**: README allineato allo stato verificato (la nota "test
   non garantiti verdi" era rimasta dal 2026-07-15 mattina, superata dai fatti).
 
+## 2026-07-15 — P0 completato: bottleneck end-to-end su tutta la pipeline
+
+Chiuso il gate P0 (review esterna, triage nella voce precedente). Ora esiste
+UN solo percorso di attention, dichiarato e verificato.
+
+- **`config.py`**: nuovo campo `attention_mode`
+  (`compress_bottleneck` default | `full_context` controllo), validato in
+  `__post_init__`, salvato in ogni checkpoint via `cfg.save`.
+- **`dataset.py`**: dopo la tokenizzazione con truncation, `validate_layout`
+  su ogni riga + check "almeno un token di target" — una riga che perde i
+  token paired o il target ora è `LayoutError` con l'identità dell'esempio,
+  mai un esempio silenziosamente degenere nel batch.
+- **`train.py`**: nuovo `forward_batch` (unico forward per training e eval
+  interna, via `forward_bottlenecked` con `cfg.attention_mode`);
+  fix accumulo gradienti (`should_step` con flush dell'ultima finestra
+  parziale per epoca) e `total_steps` con `ceil` per epoca; CLI
+  `--attention-mode`.
+- **`eval.py`**: `generate_recall` → decoder reference bottleneck;
+  `eval_mcq` → `option_loglik_bottlenecked`; il vecchio `option_loglik` è
+  rinominato **`option_loglik_full_context`** e riservato ai benchmark di
+  capacità generale (WikiText/HellaSwag/MMLU, che per protocollo restano
+  full-context); **fix bug distanza**: `example_distance()` legge
+  `distance_target_tokens` (KeyError esplicito su riga B senza campo, mai
+  bucket-0 silenzioso); il mode di default si legge dalla config del
+  checkpoint (`checkpoint_attention_mode`); ogni risultato registra
+  `attention_mode`, `decoder`, e sha256 del manifest dati.
+- **`probe.py`**: estrazione hidden state via `forward_bottlenecked`;
+  `--label-kind` obbligatorio (sentiment|topic, mai mescolati);
+  provenance nel risultato.
+- **`intervention.py` / `try_model.py`**: mode threading; il playground usa
+  lo stesso decoder reference dell'eval. Nota di onestà: i checkpoint v0
+  (senza `attention_mode` in config) di default girano `full_context` nel
+  playground — è il regime sotto cui sono stati addestrati.
+- **`run_exp0.py`**: aggiornato al nome esplicito `option_loglik_full_context`
+  (Exp 0 è la baseline prompt: testo piano, nessun token comportamentale).
+- **Test anti-regressione** (`tests/test_pipeline_integration.py`, CI):
+  modello-spia che cattura l'`attention_mask` ricevuta — train forward,
+  generate, MCQ scoring e probe extraction DEVONO passare la mask 4D
+  identica a `build_bottleneck_mask`, o il test è rosso. Più: predicato
+  grad-accum ([F,T,F,T,T] su 5 batch/accum 2), contratto distanza, guardie
+  truncation. Livello integration (`test_qwen_integration.py`): train step
+  reale + generate + MCQ su Qwen attraverso il percorso condiviso.
+- **Esito**: 51 passed (44 unit + 7 integration), ruff e compileall puliti.
+- **Conseguenza**: il P0 è chiuso; Exp 1b resta bloccato solo dal toy gate
+  (tentativo 2 in corso) e dal ri-pin del criterio Exp 2.
+
 ## Template per nuove decisioni
 
 ```

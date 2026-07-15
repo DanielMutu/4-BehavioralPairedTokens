@@ -20,6 +20,11 @@ REASON_TOKEN = "[REASON]"
 
 LAMBDA_C_MAX = 0.1  # hard cap — higher values risk hidden-state collapse
 
+# The one shared attention regime switch (P0 gate, decisions.md 2026-07-15):
+# "compress_bottleneck" = v2 (post-[COMPRESS] queries cannot read the context),
+# "full_context"        = v0-style control (ordinary causal attention).
+ATTENTION_MODES = ("compress_bottleneck", "full_context")
+
 
 @dataclass
 class TrainConfig:
@@ -50,6 +55,9 @@ class TrainConfig:
     weight_decay: float = 0.0
     max_grad_norm: float = 1.0
 
+    # --- attention regime (see ATTENTION_MODES) ---
+    attention_mode: str = "compress_bottleneck"
+
     # --- consistency loss (OFF by default, see CLAUDE.md collapse warning) ---
     lambda_c: float = 0.0
 
@@ -68,6 +76,10 @@ class TrainConfig:
     debug: bool = False
 
     def __post_init__(self) -> None:
+        if self.attention_mode not in ATTENTION_MODES:
+            raise ValueError(
+                f"attention_mode must be one of {ATTENTION_MODES}, "
+                f"got {self.attention_mode!r}")
         if self.lambda_c > LAMBDA_C_MAX:
             warnings.warn(
                 f"lambda_c={self.lambda_c} exceeds the collapse-safety cap "

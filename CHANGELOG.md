@@ -109,6 +109,21 @@ questo file traccia **cosa è cambiato, file per file, e cosa è verificato**.
   `03_attention_bottleneck_visualizer`. README allineato allo stato
   verificato. Triage completo: decisions.md 2026-07-15.
 
+- **P0 — bottleneck end-to-end** (2026-07-15): `attention_mode` in
+  `TrainConfig` (validato, persistito nei checkpoint); `train.py` con
+  `forward_batch` condiviso + fix grad-accum (flush finestra finale, `ceil`);
+  `eval.py` su `generate_bottlenecked`/`option_loglik_bottlenecked` con
+  provenance nei risultati (attention_mode, decoder, manifest sha256) e fix
+  del bug distanza (`example_distance` su `distance_target_tokens`, KeyError
+  esplicito); `option_loglik` → `option_loglik_full_context` (solo benchmark
+  generali); `probe.py` su forward bottleneck + `--label-kind` obbligatorio;
+  `dataset.py` con `validate_layout` post-truncation (LayoutError, mai righe
+  degeneri); `intervention.py`/`try_model.py` con mode threading (i
+  checkpoint v0 girano `full_context` nel playground, il loro regime reale);
+  `run_exp0.py` sul nome esplicito full-context. Nuova
+  `tests/test_pipeline_integration.py`: spia dell'attention_mask su ogni
+  entry point + e2e Qwen. Suite: **51 passed** (44 unit + 7 integration).
+
 ### Known issues / debito aperto
 
 1. ~~pytest mai rilanciato dopo l'ultimo fix → stato suite ignoto (gate 0)~~

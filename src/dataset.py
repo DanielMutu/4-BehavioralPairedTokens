@@ -24,6 +24,7 @@ from __future__ import annotations
 import torch
 from torch.utils.data import DataLoader, Dataset
 
+from src.bottleneck import LayoutError, validate_layout
 from src.config import COMPRESS_TOKEN, RECALL_TOKEN, TrainConfig
 from src.model import find_token_positions
 from src.utils import load_jsonl
@@ -62,6 +63,21 @@ class BehavioralTokenDataset(Dataset):
 
         ids = self.tokenizer(full, truncation=True, max_length=self.cfg.max_length,
                              add_special_tokens=False)["input_ids"]
+        # P0 invariant: truncation must NEVER silently remove a paired token or
+        # the whole target — a row like that would train with the architecture
+        # effectively disabled. Fail loudly with the example identity instead.
+        try:
+            _, recall_pos = validate_layout(
+                torch.tensor([ids]), self.tokenizer, require_recall=True)
+        except LayoutError as e:
+            raise LayoutError(
+                f"example {idx} (id={ex.get('example_id', '?')}) breaks the "
+                f"COMPRESS/RECALL layout after tokenization to "
+                f"{len(ids)}<=max_length={self.cfg.max_length} tokens: {e}") from e
+        if int(recall_pos) >= len(ids) - 1:
+            raise LayoutError(
+                f"example {idx} (id={ex.get('example_id', '?')}): no target "
+                f"tokens survive truncation (max_length={self.cfg.max_length})")
         labels = list(ids)
         if self.cfg.loss_on_target_only:
             n_prompt = len(self.tokenizer(prompt, add_special_tokens=False)["input_ids"])

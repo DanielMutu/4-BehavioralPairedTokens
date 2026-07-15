@@ -43,7 +43,11 @@ def make_example(i: int = 0, ex_type: str = "A", label: str | None = "positive",
 
 
 class FakeTokenizer:
-    """Minimal whitespace tokenizer with real special-token semantics."""
+    """Minimal whitespace tokenizer with real special-token semantics.
+
+    Honors truncation/max_length and return_tensors="pt" so dataset and
+    generation code paths can run against it unchanged.
+    """
 
     def __init__(self):
         self.vocab: dict[str, int] = {"<eos>": 0, COMPRESS_TOKEN: 1,
@@ -60,10 +64,24 @@ class FakeTokenizer:
             self.vocab[word] = len(self.vocab)
         return self.vocab[word]
 
-    def __call__(self, text: str, **_):
+    def __call__(self, text: str, truncation: bool = False,
+                 max_length: int | None = None, return_tensors: str | None = None,
+                 **_):
         # newline-separated render: split on whitespace keeps special tokens whole
         ids = [self._id(w) for w in text.split()]
+        if truncation and max_length is not None:
+            ids = ids[:max_length]
+        if return_tensors == "pt":
+            return {"input_ids": torch.tensor([ids], dtype=torch.long)}
         return {"input_ids": ids}
+
+    def decode(self, ids, skip_special_tokens: bool = False) -> str:
+        rev = {v: k for k, v in self.vocab.items()}
+        words = [rev.get(int(i), "?") for i in ids]
+        if skip_special_tokens:
+            special = {self.eos_token, COMPRESS_TOKEN, RECALL_TOKEN, REASON_TOKEN}
+            words = [w for w in words if w not in special]
+        return " ".join(words)
 
 
 @pytest.fixture()

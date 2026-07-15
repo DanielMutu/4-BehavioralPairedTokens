@@ -83,14 +83,15 @@ class CompressIntervention:
 
 def intervene_and_generate(model, tokenizer, example: dict, device,
                            direction: np.ndarray, hook_layer: int,
-                           alpha: float) -> dict:
+                           alpha: float,
+                           mode: str = "compress_bottleneck") -> dict:
     prompt_ids = tokenizer(render_prompt(example), add_special_tokens=False)["input_ids"]
     compress_id = tokenizer.convert_tokens_to_ids(COMPRESS_TOKEN)
     if compress_id not in prompt_ids:
         return {}
     pos = prompt_ids.index(compress_id)
 
-    baseline = generate_recall(model, tokenizer, example, device)
+    baseline = generate_recall(model, tokenizer, example, device, mode=mode)
 
     layers = get_decoder_layers(model)
     # probe layer is a hidden_states index ([0]=embeddings) -> decoder idx - 1
@@ -99,7 +100,7 @@ def intervene_and_generate(model, tokenizer, example: dict, device,
     hook = CompressIntervention(torch.from_numpy(direction).float(), pos, alpha)
     handle = layers[idx].register_forward_hook(hook)
     try:
-        intervened = generate_recall(model, tokenizer, example, device)
+        intervened = generate_recall(model, tokenizer, example, device, mode=mode)
     finally:
         handle.remove()
 
@@ -122,6 +123,8 @@ def main():
     p.add_argument("--alpha", type=float, default=4.0,
                    help="shift magnitude, relative to the hidden-state norm")
     p.add_argument("--model-name", type=str, default="Qwen/Qwen2.5-0.5B")
+    p.add_argument("--attention-mode", type=str, default="compress_bottleneck",
+                   choices=["compress_bottleneck", "full_context"])
     p.add_argument("--max-samples", type=int, default=30)
     p.add_argument("--out", type=str, default="results/exp5_intervention/results.json")
     args = p.parse_args()
@@ -140,7 +143,8 @@ def main():
     records = []
     for ex in tqdm(examples, desc="intervention"):
         rec = intervene_and_generate(model, tokenizer, ex, device,
-                                     direction, layer, args.alpha)
+                                     direction, layer, args.alpha,
+                                     mode=args.attention_mode)
         if rec:
             records.append(rec)
 
@@ -148,6 +152,7 @@ def main():
         "target_class": args.target_class,
         "alpha": args.alpha,
         "probe_layer": layer,
+        "attention_mode": args.attention_mode,
         "n": len(records),
         "changed_fraction": sum(r["changed"] for r in records) / max(len(records), 1),
         "records": records,
