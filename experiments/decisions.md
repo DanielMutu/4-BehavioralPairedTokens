@@ -625,6 +625,49 @@ di qualsiasi risultato Exp 2. **Queste soglie non si ritoccano.**
   **500 campioni downstream** (was 200) per la nota di potenza statistica;
   output separato in `results/exp1b_stability.json` (il v0 resta intatto).
 
+## 2026-07-16 — Triage secondo feedback esterno (ricevuto durante Exp 1b)
+
+Testo salvato in `docs/external_feedback_2026-07-16.md`. Qualità inferiore
+alla review del 2026-07-15: contiene osservazioni utili ma anche errori
+fattuali sul nostro codice e imprecisioni tecniche. Triage:
+
+- **ACCOLTO — controllo aggiuntivo "anchor medio"**: sostituire l'anchor con
+  l'hidden state MEDIO del contesto (norm-matched) come condizione
+  diagnostica extra di Exp 2, accanto a zeroed/shuffled. Distingue
+  "informazione specifica" da "rumore strutturato". NON tocca il criterio
+  gating pre-registrato (resta a 8 condizioni + questa come diagnostica non
+  gating — aggiunta dichiarata ORA, prima di ogni risultato Exp 2).
+- **ACCOLTO — docs/mechanism.md**: documento dedicato alla meccanica del
+  compressore (mask, invariante, decoder reference, ricetta, controlli).
+  In backlog, da scrivere dopo il verdetto Exp 1b.
+- **ACCOLTO — contingenza Exp 1c**: se Exp 1b FAIL, un tentativo con 2-3
+  epoche + warmup prima di dichiarare il meccanismo insufficiente
+  (coerente con la dinamica "transizione lenta" vista nel toy gate).
+- **GIÀ PIANIFICATO** (il feedback non lo sapeva): Exp 0 v2 + Exp 2 sul
+  modello trained come vera verifica della compressione (ordine gate);
+  curva multi-anchor K e compressione ricorsiva (roadmap P2 della review
+  precedente); anchor shuffled (condizione 6 pre-registrata).
+- **GIÀ FATTO** (errore fattuale del feedback): l'init mean-embedding dei
+  token speciali esiste da sempre (`_mean_init_new_tokens`, decisions
+  2026-06-09) — il "miglioramento 4" descrive un problema che non abbiamo.
+- **RESPINTO — loss di ricostruzione esplicita (aux decoder)**: ci
+  trasformerebbe in una variante ICAE/autoencoder (il posizionamento è
+  differenziarsi da ICAE, non reimplementarlo), reintrodurrebbe rischio di
+  leakage dello stile del generatore dei riassunti target, e cambierebbe il
+  claim (comportamento appreso via LM loss → compressione supervisionata).
+  Riconsiderabile solo come ablazione separata e dichiarata, mai nel run
+  principale.
+- **RESPINTO — multi-anchor ORA**: cambierebbe l'ipotesi in corso di
+  esperimento (il claim è sul SINGOLO anchor come canale obbligato).
+- **RESPINTO — "context dropout PAD" come procedura di training**: mal
+  posta — con contesto PAD l'anchor calcolato nel forward non contiene
+  nulla da preservare; la versione corretta è il patching che già usiamo
+  come controllo in eval.
+- **Correzioni tecniche al testo**: la capacità del vettore è 896·16 =
+  **14336 bit**, non "2^14336"; il confronto "loss 4.85 vs loss WikiText
+  ~3" è mal posto (CE target-only sotto bottleneck vs LM loss full-context
+  — non comparabili; la verifica giusta è il gate in corso).
+
 ## Template per nuove decisioni
 
 ```
