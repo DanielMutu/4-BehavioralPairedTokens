@@ -668,6 +668,34 @@ fattuali sul nostro codice e imprecisioni tecniche. Triage:
   ~3" è mal posto (CE target-only sotto bottleneck vs LM loss full-context
   — non comparabili; la verifica giusta è il gate in corso).
 
+## 2026-07-16 — Triage terzo feedback esterno (con verifica diretta del repo)
+
+Feedback ricevuto dopo fetch diretto di raw/API GitHub (stato osservato:
+commit `52c0395`). Il migliore dei tre per metodo: ha verificato invece di
+opinare. Triage:
+
+- **ACCOLTA — correzione interpretativa sul toy gate**: tra tent. 1 e 2
+  sono cambiate DUE variabili insieme (codici 160→400, epoche 20→30);
+  l'attribuzione "mancavano dati" nella voce del PASS era più forte del
+  lecito. Conclusione corretta: capacità di training insufficiente, con
+  contributo relativo di varietà vs durata NON isolato; il PASS esclude il
+  difetto strutturale del meccanismo. Corretti i documenti vivi
+  (`experiments/toy_bottleneck/README.md`, `docs/mechanism.md`); la voce
+  storica del PASS resta com'era, questa nota fa da errata.
+- **ACCOLTA — cautela su `full_context_acc = 0`**: declassata da "conferma
+  indiretta del meccanismo" a **sensibilità al regime attentivo**
+  (compatibile con la specializzazione sul canale ma anche con un semplice
+  shift di distribuzione). Corretti gli stessi documenti vivi.
+- **GIÀ RISOLTO — disallineamento documentale**: il feedback osservava il
+  repo a `52c0395`; il commit `896ce92` (riallineamento snapshot/cronologia)
+  è successivo e copre tutti i punti elencati.
+- **CONFERMA UTILE**: lettura del toy gate condivisa ("la meccanica
+  fondamentale è realizzabile; non dimostra ancora compressione semantica
+  su testo naturale") — è la stessa formulazione dei nostri limiti in
+  `docs/mechanism.md` §10.
+- **Nota**: `exp1b_stability.json` assente dal repo perché il gate è ancora
+  in esecuzione; verrà pushato col verdetto.
+
 ## Template per nuove decisioni
 
 ```

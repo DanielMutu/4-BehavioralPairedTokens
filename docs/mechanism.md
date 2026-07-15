@@ -191,9 +191,13 @@ strutturato; non gating).
    byte KV, FLOPs, latenza).
 3. Il relay (§3) rende l'ablazione distanza di default un claim più debole;
    la condizione anchor-only è ciò che lo rafforza.
-4. `full_context_acc = 0` nei modelli toy addestrati col bottleneck: il
-   canale appreso è specifico del regime vincolato (non è un modello "dual
-   mode").
+4. `full_context_acc = 0` nei modelli toy addestrati col bottleneck: da
+   leggere come sensibilità al regime attentivo (nessuna generalizzazione a
+   una topologia diversa da quella di training), non come prova causale
+   autonoma del meccanismo.
+5. Tra i tentativi 1 e 2 del toy gate sono cambiate due variabili insieme
+   (dati 160→400, epoche 20→30): il PASS esclude il difetto strutturale, ma
+   il contributo relativo di varietà vs durata non è isolato.
 
 ## File di riferimento
 

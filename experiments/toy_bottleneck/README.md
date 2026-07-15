@@ -103,9 +103,12 @@ del tentativo 1 (`results/toy_bottleneck_try2.json`). Nessuna soglia toccata.
 | `full_context_acc` | 0.000 | info | come tent. 1 |
 | `bottleneck_acc` su train | 1.00 | — | — |
 
-**Verdetto: PASS su tutti i criteri pre-registrati.** La diagnosi del
-tentativo 1 era corretta: con 2.5× dati la stessa ricetta generalizza
-(92.5% su codici mai visti, chance ≈ 10⁻⁴).
+**Verdetto: PASS su tutti i criteri pre-registrati.** Il fallimento del
+tentativo 1 era dovuto a capacità di training insufficiente — risolto
+aumentando **insieme** varietà dei dati (160→400) e durata (20→30 epoche):
+il contributo relativo dei due fattori non è isolato (due variabili cambiate
+simultaneamente). Ciò che il PASS esclude è il difetto strutturale del
+meccanismo (92.5% su codici mai visti, chance ≈ 10⁻⁴).
 
 La prova causale è quella che conta: con l'anchor oscurato il recall crolla
 a zero; nel trapianto degli hidden state (`AnchorPatcher`, tutte le
@@ -113,6 +116,12 @@ profondità) il contesto reale del prompt viene ignorato nel **100%** dei
 casi e nel **90%** la generazione produce esattamente il codice
 dell'esempio da cui proviene l'anchor. La memoria vive nell'hidden state di
 `[COMPRESS]` — non è correlazione, è il canale.
+
+Nota su `full_context_acc = 0`: va letta come **sensibilità al regime
+attentivo** (il modello addestrato sotto una topologia non generalizza
+quando la si cambia), non come prova causale autonoma — è compatibile con
+la specializzazione sul canale-anchor ma anche con un semplice shift di
+distribuzione delle attivazioni.
 
 **Conseguenza**: gate bottleneck chiuso → via libera a Exp 1b
 (ricetta conservativa, `train_config_1b.json`).
