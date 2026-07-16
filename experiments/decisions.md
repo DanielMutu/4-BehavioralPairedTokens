@@ -824,6 +824,44 @@ pre-riallineamento e due spunti nuovi accolti.
   Il progetto ha ora un negative result pre-registrato completo e
   difendibile — l'esito "onorevole" previsto fin dalla voce 2026-06-09.
 
+## 2026-07-17 — Triage quinto feedback esterno (review verificata di Exp 2)
+
+Salvato in `docs/external_feedback_2026-07-17.md`. Il più rigoroso della
+serie: numeri ricontrollati dai record (tabella McNemar 2×2 ricostruita
+correttamente), **nessun errore fattuale trovato** — primo caso. Tutte le
+correzioni accolte:
+
+- **ESEGUITO — test appaiato bottleneck vs anchor_removed** (dai record,
+  zero inference, aggiunto a `exp2_results.json` come post-hoc dichiarato):
+  diff −0.55 pt, CI95 [−4.25, +3.14], McNemar p=0.847 (52 vs 55
+  discordanti); per partizione: CNN +0.26 pt p=1.0, sintetici −3.4 pt
+  p=0.47. Conferma "nessun beneficio rilevabile" e lo rende formalmente
+  sostenibile. Emerso in più: pick identici solo 58.2% — la capsula
+  perturba le scelte senza migliorarle (rumore, non segnale).
+- **Correzioni di linguaggio applicate** (README exp2, README, notebook):
+  "capsula vuota" → claim comportamentale ("nessuna informazione
+  utilizzabile dal comportamento MCQ"; il contenuto lo decide Exp 3);
+  "upper bound" → "riferimento full-context (base)" (token_unmasked lo
+  supera); "il collo è il canale, non il formato" → "il collo è il regime
+  bottleneck e il suo addestramento, non la capacità generale del modello";
+  anchor_shuffled correttamente "interrotta a 3/541", non "non eseguita".
+- **Lettura accolta sulla lezione centrale**: *stabilità del modello e
+  apprendimento del bottleneck sono obiettivi diversi* — Exp 1b ha
+  massimizzato la prima (ppl +0.24%) probabilmente a scapito del secondo
+  (task loss 4.54, canale semantico mai "aperto"). Il gate di stabilità
+  resta necessario ma non sufficiente: il prossimo training avrà anche un
+  mini-gate bottleneck held-out nella selezione del checkpoint.
+- **Piano diagnostico adottato** (economico→costoso): (1) ✅ test appaiato;
+  (2) recall-on-train (il checkpoint sa fare il compito ESATTO del
+  training?); (3) Exp 3 probing multi-layer con split per content_id;
+  (4) micro-overfit 20–50 esempi (test di apprendibilità); (5) training QA
+  esplicito + confronto query-conditioned vs query-independent; (6) Exp 1c
+  come MATRICE epoche×formato, non run singolo.
+- **Formulazione finale del risultato adottata** (nel README di Exp 2):
+  canale causale funzionante per messaggi semplici; il checkpoint Exp 1b
+  non ha appreso a renderlo semanticamente interrogabile; cause candidate
+  non ancora distinte da Exp 2.
+
 ## Template per nuove decisioni
 
 ```
