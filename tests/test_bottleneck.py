@@ -11,8 +11,11 @@ import torch
 
 from src.bottleneck import (
     LayoutError,
+    build_anchor_only_mask,
+    build_anchor_removed_mask,
     build_bottleneck_mask,
     build_causal_mask,
+    build_forced_relay_mask,
     validate_layout,
 )
 from tests.conftest import encode_layout
@@ -65,6 +68,41 @@ class TestMaskTruthTable:
             build_bottleneck_mask(attn2d, torch.tensor([3]))
         with pytest.raises(LayoutError, match="right padding"):
             build_causal_mask(attn2d)
+
+    def test_variant_masks_exhaustive_truth_tables(self):
+        # layout: 4 ctx | c=4 | filler 5..6 | r=7 | target 8..10
+        seq, c, r = 11, 4, 7
+        attn2d = torch.ones(1, seq)
+        cp, rp = torch.tensor([c]), torch.tensor([r])
+
+        removed = allowed(build_anchor_removed_mask(attn2d, cp))[0]
+        a_only = allowed(build_anchor_only_mask(attn2d, cp, rp))[0]
+        relay = allowed(build_forced_relay_mask(attn2d, cp, rp))[0]
+
+        for q in range(seq):
+            for k in range(seq):
+                pre = q <= c
+                base = k <= q
+                # anchor_removed: post-anchor sees (c, q] only
+                exp_rm = base and (pre or k > c)
+                # anchor_only: fillers (c<q<r) see (c,q]; recall+ sees [c,q]
+                exp_ao = base and (pre or (k > c if q < r else k >= c))
+                # forced_relay: fillers see [c,q]; recall+ sees (c,q]
+                exp_fr = base and (pre or (k >= c if q < r else k > c))
+                assert removed[q, k].item() == exp_rm, ("removed", q, k)
+                assert a_only[q, k].item() == exp_ao, ("anchor_only", q, k)
+                assert relay[q, k].item() == exp_fr, ("forced_relay", q, k)
+
+        # the invariant all variants share: no post-anchor query reads context
+        for m in (removed, a_only, relay):
+            assert not m[c + 1:, :c].any()
+
+    def test_variant_masks_reject_bad_positions(self):
+        attn2d = torch.ones(1, 6)
+        with pytest.raises(LayoutError):
+            build_anchor_only_mask(attn2d, torch.tensor([3]), torch.tensor([2]))
+        with pytest.raises(LayoutError):
+            build_forced_relay_mask(attn2d, torch.tensor([-1]), torch.tensor([4]))
 
     def test_causal_control_mask_differs_only_pre_anchor(self):
         attn2d = torch.ones(1, 8)

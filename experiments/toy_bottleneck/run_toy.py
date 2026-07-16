@@ -187,56 +187,7 @@ def anchor_removed_accuracy(model, tokenizer, codes: list[str], device) -> float
     return hits / len(codes)
 
 
-def _decoder_layers(model) -> torch.nn.ModuleList:
-    lists = [m for _, m in model.named_modules()
-             if isinstance(m, torch.nn.ModuleList) and len(m) >= 8]
-    if not lists:
-        raise RuntimeError("could not locate decoder layers")
-    return max(lists, key=len)
-
-
-class AnchorPatcher:
-    """Capture the anchor hidden state at every depth from one forward, then
-    force those states into subsequent forwards (activation patching)."""
-
-    def __init__(self, model, pos: int):
-        self.modules = [model.get_input_embeddings(), *list(_decoder_layers(model))]
-        self.pos = pos
-        self.stored: list[torch.Tensor | None] = [None] * len(self.modules)
-        self._handles: list = []
-
-    @staticmethod
-    def _tensor(output):
-        return output[0] if isinstance(output, tuple) else output
-
-    def capture(self, run) -> None:
-        def make(i):
-            def hook(_m, _args, output):
-                self.stored[i] = self._tensor(output)[:, self.pos, :].detach().clone()
-            return hook
-        handles = [m.register_forward_hook(make(i)) for i, m in enumerate(self.modules)]
-        try:
-            run()
-        finally:
-            for h in handles:
-                h.remove()
-
-    def __enter__(self):
-        def make(i):
-            def hook(_m, _args, output):
-                t = self._tensor(output)
-                t[:, self.pos, :] = self.stored[i].to(t.dtype)
-                return output
-            return hook
-        self._handles = [m.register_forward_hook(make(i))
-                         for i, m in enumerate(self.modules)]
-        return self
-
-    def __exit__(self, *exc):
-        for h in self._handles:
-            h.remove()
-        self._handles = []
-        return False
+from src.patching import AnchorPatcher  # noqa: E402  (shared with Exp 2)
 
 
 @torch.no_grad()

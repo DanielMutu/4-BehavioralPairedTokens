@@ -99,6 +99,85 @@ def build_bottleneck_mask(attention_mask_2d: torch.Tensor,
     return mask
 
 
+def build_anchor_removed_mask(attention_mask_2d: torch.Tensor,
+                              compress_pos: torch.Tensor,
+                              dtype: torch.dtype = torch.float32) -> torch.Tensor:
+    """Exp 2 condition 'anchor removed': post-anchor queries lose even the
+    anchor key — k in (c, q] only. Operationalizes 'anchor azzerato' by
+    removing ACCESS (same construction validated in the toy gate)."""
+    return _build_variant_mask(attention_mask_2d, compress_pos, None,
+                               post_includes_anchor=False,
+                               recall_includes_anchor=False, dtype=dtype)
+
+
+def build_anchor_only_mask(attention_mask_2d: torch.Tensor,
+                           compress_pos: torch.Tensor,
+                           recall_pos: torch.Tensor,
+                           dtype: torch.dtype = torch.float32) -> torch.Tensor:
+    """Exp 2 condition 'anchor-only recall': fillers are BLIND to the anchor
+    (k in (c, q] for c < q < r); [RECALL] and everything after read it
+    (k in [c, q] for q >= r). Separates single-state persistence from
+    relay through the filler chain."""
+    return _build_variant_mask(attention_mask_2d, compress_pos, recall_pos,
+                               post_includes_anchor=False,
+                               recall_includes_anchor=True, dtype=dtype)
+
+
+def build_forced_relay_mask(attention_mask_2d: torch.Tensor,
+                            compress_pos: torch.Tensor,
+                            recall_pos: torch.Tensor,
+                            dtype: torch.dtype = torch.float32) -> torch.Tensor:
+    """Exp 2 diagnostic 'forced relay': fillers CAN read the anchor
+    (k in [c, q] for c < q < r) but [RECALL] and after cannot
+    (k in (c, q] for q >= r) — information must survive the hop chain."""
+    return _build_variant_mask(attention_mask_2d, compress_pos, recall_pos,
+                               post_includes_anchor=True,
+                               recall_includes_anchor=False, dtype=dtype)
+
+
+def _build_variant_mask(attention_mask_2d: torch.Tensor,
+                        compress_pos: torch.Tensor,
+                        recall_pos: torch.Tensor | None,
+                        post_includes_anchor: bool,
+                        recall_includes_anchor: bool,
+                        dtype: torch.dtype) -> torch.Tensor:
+    """Shared builder for bottleneck variants. All variants keep the core
+    invariant (post-anchor queries never see keys < c); they differ only in
+    WHO may read the anchor key itself."""
+    if (compress_pos < 0).any():
+        raise LayoutError("variant masks need a valid compress_pos per row")
+    if recall_pos is not None and (recall_pos <= compress_pos).any():
+        raise LayoutError("variant masks need recall_pos > compress_pos per row")
+    bsz, seq = attention_mask_2d.shape
+    device = attention_mask_2d.device
+    q = torch.arange(seq, device=device).view(1, seq, 1)
+    k = torch.arange(seq, device=device).view(1, 1, seq)
+    c = compress_pos.to(device).view(bsz, 1, 1)
+
+    causal = k <= q
+    key_real = attention_mask_2d.to(torch.bool).view(bsz, 1, seq)
+    pre = q <= c                       # ordinary causal region
+    sees_anchor_strict = k > c         # (c, q]
+    sees_anchor_incl = k >= c          # [c, q]
+
+    if recall_pos is None:
+        post_rule = sees_anchor_incl if post_includes_anchor else sees_anchor_strict
+        allowed = causal & (pre | post_rule) & key_real
+    else:
+        r = recall_pos.to(device).view(bsz, 1, 1)
+        filler_zone = (q > c) & (q < r)
+        recall_zone = q >= r
+        filler_rule = sees_anchor_incl if post_includes_anchor else sees_anchor_strict
+        recall_rule = sees_anchor_incl if recall_includes_anchor else sees_anchor_strict
+        allowed = causal & (pre
+                            | (filler_zone & filler_rule)
+                            | (recall_zone & recall_rule)) & key_real
+    _reject_fully_blocked_rows(allowed)
+    mask = torch.zeros(bsz, 1, seq, seq, dtype=dtype, device=device)
+    mask.masked_fill_(~allowed.view(bsz, 1, seq, seq), torch.finfo(dtype).min)
+    return mask
+
+
 def build_causal_mask(attention_mask_2d: torch.Tensor,
                       dtype: torch.dtype = torch.float32) -> torch.Tensor:
     """Ordinary causal 4D mask, same convention — the no-bottleneck control."""
