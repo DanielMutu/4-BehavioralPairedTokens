@@ -330,7 +330,9 @@ progetto: **`proxy-an`** oppure crediti OpenRouter sufficienti; e verificare que
   - [ ] Exp 0 v2 (test completo, per-example records, bootstrap/McNemar)
   - [x] **Exp 1b conservativo → PASS** (2026-07-16): WikiText ppl **+0.24%** (v0: +24.7%), HellaSwag −0.4 pt, MMLU +1.0 pt su 500 campioni, soglie invariate — il training col bottleneck non degrada il modello. Checkpoint: `exp1b-bottleneck-v2/best`. Vedi decisions.md
 - [x] **Exp 0 v2 — COMPLETATO** (2026-07-16): baseline `mcq_from_summary` **0.656** [0.616, 0.697] sui 541; CNN out-of-style **0.593**, sintetici 0.812; full context 0.808 (McNemar p=1.7e-13 — l'effetto bigino v0 era rumore da n=50). Fact survival nei riassunti CNN: 5.9%. Vedi decisions.md
-- [ ] **Exp 2 — IN CORSO** (2026-07-16: 8 condizioni gating + 2 diagnostiche sul checkpoint exp1b, coorte appaiata, verdetto McNemar vs 0.656)
+- [x] **Exp 2 — FAIL (negative result pre-registrato)** (2026-07-17): true_bottleneck **0.2366** vs baseline 0.656 (−42 pt appaiati, McNemar p=3.9e-46); bottleneck ≈ anchor_removed (0.242) → capsula senza contenuto semantico misurabile; token_unmasked 0.8725 → il collo è il canale, non modello/formato. Early stop dichiarato sulle condizioni 6-10 (riprendibili via `--resume`). Vedi `experiments/exp2_distance/README.md`
+- [ ] **Exp 3 — probing della capsula** ← PROSSIMO PASSO (decide tra "informazione presente ma inutilizzata" e "capsula vuota"; economico)
+- [ ] Exp 1c (contingenza): più epoche + QA-format nel training → ri-run Exp 2 (--resume)
 - [ ] Exp 3 — probing hidden states **con tutti i controlli**
 - [ ] Dataset Tipo C + Exp 4 — composizione
 - [ ] Exp 5 — intervento causale (se Exp 3 dà risultati positivi)

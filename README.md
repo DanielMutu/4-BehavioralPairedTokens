@@ -23,7 +23,8 @@ Stato file per file: **[CHANGELOG.md](CHANGELOG.md)**.
 > | Criterio Exp 2 | pre-registrato sui 541 MCQ v2 (McNemar, ±3 pt, out-of-style separato, 8 condizioni gating + 2 diagnostiche) |
 > | Exp 1b stabilità | **PASS**: WikiText ppl +0.24% (v0: +24.7%), HellaSwag −0.4 pt, MMLU +1.0 pt (n=500) — il training col bottleneck non degrada il modello |
 > | Exp 0 v2 baseline | **misurata** sui 541: summary 0.656 [0.62, 0.70], full context 0.808; CNN out-of-style 0.593; fact survival nei riassunti CNN 5.9% — l'effetto bigino v0 era rumore (McNemar p=1.7e-13) |
-> | **In corso** | **Exp 2**: 8 condizioni gating + 2 diagnostiche vs baseline appaiata → `results/exp2_results.json` |
+> | Exp 2 | **FAIL — negative result pre-registrato**: bottleneck 0.237 vs baseline 0.656 (−42 pt, p=3.9e-46); bottleneck ≈ anchor-removed → capsula semanticamente vuota per gli MCQ; token_unmasked 0.873 → il collo è il canale, non il modello. Early stop dichiarato su 5 condizioni (riprendibili) |
+> | Prossimo passo | **Exp 3 probing**: l'informazione è nella capsula ma inutilizzata, o non c'è proprio? Poi eventuale Exp 1c (QA-format + più epoche) |
 >
 > La cronologia completa (inclusi FAIL e incidenti) resta in
 > `CHANGELOG.md` e `experiments/decisions.md`; la meccanica del compressore

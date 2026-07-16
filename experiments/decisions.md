@@ -789,6 +789,41 @@ pre-riallineamento e due spunti nuovi accolti.
   checkpoint `exp1b-bottleneck-v2/best`, scoring MCQ batched, resumable).
   Nessuna soglia toccata.
 
+## 2026-07-17 — Exp 2: FAIL sul criterio primario + early stop dichiarato
+
+- **Verdetto** (criterio pre-registrato 2026-07-15, soglie mai toccate):
+  true_bottleneck **0.2366** vs prompt_summary **0.656** sugli stessi 541
+  item → differenza appaiata **−41.96 pt**, McNemar p = **3.9e-46**;
+  out-of-style CNN: −37.6 pt. Né vittoria né pareggio: **FAIL netto**.
+  Condizioni completate: full_context_base 0.808, prompt_summary 0.656,
+  token_unmasked **0.8725**, true_bottleneck 0.2366, anchor_removed 0.2421.
+- **La lettura causale chiave**: bottleneck (0.237) ≈ anchor_removed
+  (0.242) — la capsula non ha trasferito informazione semantica misurabile;
+  il sopra-caso residuo sui sintetici è prior delle opzioni (presente anche
+  senza anchor). In contrasto, token_unmasked 0.8725 dimostra che modello e
+  formato funzionano: il collo è il canale, con questa ricetta.
+- **EARLY STOP dichiarato** (proposta utente, condivisa): condizioni 6-10
+  (shuffled/untrained/anchor_only/mean/forced_relay) NON eseguite.
+  Motivi: (a) il verdetto primario dipende solo dalle condizioni 2+4,
+  entrambe complete; (b) il controllo causale chiave (5) è completo e
+  nullo; (c) l'informazione residua ("la capsula CONTIENE informazione?")
+  si ottiene a ~1/100 del costo con Exp 3; (d) ~20h CPU risparmiate su
+  esiti determinati. È una DEVIAZIONE dal protocollo pre-registrato,
+  dichiarata nel JSON dei risultati (`early_stop`) e qui; il run resta
+  riprendibile (`--resume`), i record non vengono toccati.
+- **Coerenza col toy**: nessuna contraddizione — il toy valida il *canale*
+  (codici 13 bit, training di riproduzione dedicato), Exp 2 mostra che la
+  ricetta minima (1 epoca, loss riproduzione, dati sintetici) non produce
+  compressione semantica interrogabile. Ipotesi per il FAIL in ordine di
+  testabilità: mismatch formato QA mai visto in training; training
+  insufficiente (task loss 4.54); capacità del singolo vettore; dati solo
+  sintetici. Dettagli: `experiments/exp2_distance/README.md`.
+- **Prossimi passi**: Exp 3 probing sulla capsula (decide tra "informazione
+  presente ma inutilizzata" e "capsula vuota"); poi eventuale Exp 1c
+  (più epoche + QA-format nel training) e ri-run Exp 2 via --resume.
+  Il progetto ha ora un negative result pre-registrato completo e
+  difendibile — l'esito "onorevole" previsto fin dalla voce 2026-06-09.
+
 ## Template per nuove decisioni
 
 ```

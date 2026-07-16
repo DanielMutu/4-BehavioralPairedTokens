@@ -162,6 +162,18 @@ questo file traccia **cosa è cambiato, file per file, e cosa è verificato**.
   congelata versionati. **Exp 2 lanciato** (8+2 condizioni, checkpoint
   exp1b). Dettagli: decisions.md 2026-07-16.
 
+- **Exp 2: FAIL — negative result pre-registrato** (2026-07-17):
+  true_bottleneck **0.2366** vs baseline prompt-summary **0.656** sugli
+  stessi 541 (−42 pt appaiati, McNemar p=3.9e-46; CNN −37.6). Il confronto
+  causale 4-vs-5 (bottleneck 0.237 ≈ anchor_removed 0.242) mostra capsula
+  senza contenuto semantico misurabile; token_unmasked **0.8725** dimostra
+  che modello e formato funzionano — il collo è il canale con questa
+  ricetta. **Early stop dichiarato** sulle condizioni 6-10 (~20h CPU
+  risparmiate; run riprendibile via `--resume`; deviazione registrata nel
+  JSON e in decisions.md). Nuovo `finalize_early_stop.py` calcola il
+  verdetto dai record con le stesse funzioni pre-registrate. Analisi
+  completa: `experiments/exp2_distance/README.md`. Prossimo: Exp 3 probing.
+
 ### Known issues / debito aperto
 
 1. ~~pytest mai rilanciato dopo l'ultimo fix → stato suite ignoto (gate 0)~~

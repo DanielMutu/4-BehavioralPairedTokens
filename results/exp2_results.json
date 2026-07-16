@@ -1,0 +1,178 @@
+{
+  "n": 541,
+  "early_stop": {
+    "declared": true,
+    "reason": "primary verdict already determined by conditions 2+4; key causal control (anchor_removed) complete; remaining conditions deferred (resumable via --resume). See decisions.md 2026-07-17.",
+    "conditions_not_run": {
+      "anchor_shuffled": 3,
+      "token_untrained": 0,
+      "anchor_only": 0,
+      "anchor_mean": 0,
+      "forced_relay": 0
+    }
+  },
+  "conditions": {
+    "full_context_base": {
+      "accuracy": {
+        "mean": 0.8077634011090573,
+        "ci_low": 0.7744916820702403,
+        "ci_high": 0.8410351201478743,
+        "n": 541
+      },
+      "by_source": {
+        "cnn_dailymail": 0.8082901554404145,
+        "synthetic": 0.8120805369127517,
+        "handwritten": 0.6666666666666666
+      },
+      "by_distance": {
+        "0": 0.8061855670103093,
+        "3": 1.0,
+        "10": 0.7272727272727273,
+        "20": 0.7142857142857143,
+        "25": 1.0,
+        "30": 0.0,
+        "50": 0.8333333333333334,
+        "100": 0.9230769230769231
+      },
+      "gating": true
+    },
+    "prompt_summary": {
+      "accuracy": {
+        "mean": 0.6561922365988909,
+        "ci_low": 0.6155268022181146,
+        "ci_high": 0.6968576709796673,
+        "n": 541
+      },
+      "by_source": {
+        "cnn_dailymail": 0.5932642487046632,
+        "synthetic": 0.8120805369127517,
+        "handwritten": 0.8333333333333334
+      },
+      "by_distance": {
+        "0": 0.6412371134020619,
+        "3": 0.8,
+        "10": 0.7272727272727273,
+        "20": 0.7142857142857143,
+        "25": 1.0,
+        "30": 1.0,
+        "50": 0.8333333333333334,
+        "100": 0.8461538461538461
+      },
+      "gating": true
+    },
+    "token_unmasked": {
+      "accuracy": {
+        "mean": 0.8724584103512015,
+        "ci_low": 0.844731977818854,
+        "ci_high": 0.9001848428835489,
+        "n": 541
+      },
+      "by_source": {
+        "cnn_dailymail": 0.8626943005181347,
+        "synthetic": 0.8993288590604027,
+        "handwritten": 0.8333333333333334
+      },
+      "by_distance": {
+        "0": 0.8680412371134021,
+        "3": 0.9,
+        "10": 0.9090909090909091,
+        "20": 0.8571428571428571,
+        "25": 1.0,
+        "30": 1.0,
+        "50": 1.0,
+        "100": 0.9230769230769231
+      },
+      "gating": true
+    },
+    "true_bottleneck": {
+      "accuracy": {
+        "mean": 0.2365988909426987,
+        "ci_low": 0.20147874306839186,
+        "ci_high": 0.2735674676524954,
+        "n": 541
+      },
+      "by_source": {
+        "cnn_dailymail": 0.21761658031088082,
+        "synthetic": 0.28187919463087246,
+        "handwritten": 0.3333333333333333
+      },
+      "by_distance": {
+        "0": 0.2329896907216495,
+        "3": 0.4,
+        "10": 0.36363636363636365,
+        "20": 0.2857142857142857,
+        "25": 1.0,
+        "30": 0.0,
+        "50": 0.3333333333333333,
+        "100": 0.0
+      },
+      "gating": true
+    },
+    "anchor_removed": {
+      "accuracy": {
+        "mean": 0.24214417744916822,
+        "ci_low": 0.20702402957486138,
+        "ci_high": 0.27911275415896486,
+        "n": 541
+      },
+      "by_source": {
+        "cnn_dailymail": 0.21502590673575128,
+        "synthetic": 0.31543624161073824,
+        "handwritten": 0.16666666666666666
+      },
+      "by_distance": {
+        "0": 0.24536082474226803,
+        "3": 0.3,
+        "10": 0.36363636363636365,
+        "20": 0.14285714285714285,
+        "25": 1.0,
+        "30": 0.0,
+        "50": 0.16666666666666666,
+        "100": 0.07692307692307693
+      },
+      "gating": true
+    }
+  },
+  "verdict": {
+    "primary_bottleneck_beats_baseline": false,
+    "secondary_tie_within_3pts": false,
+    "paired_diff_bottleneck_minus_baseline": {
+      "ci_low": -0.4676524953789279,
+      "ci_high": -0.36968576709796674,
+      "n": 541,
+      "mean_diff": -0.4195933456561922
+    },
+    "mcnemar_bottleneck_vs_baseline": {
+      "n10": 30,
+      "n01": 257,
+      "n_discordant": 287,
+      "p_value": 3.8867586522584204e-46
+    },
+    "out_of_style_cnn": {
+      "n": 386,
+      "true_bottleneck_acc": 0.21761658031088082,
+      "prompt_summary_acc": 0.5932642487046632,
+      "paired_diff": {
+        "ci_low": -0.43523316062176165,
+        "ci_high": -0.3134715025906736,
+        "n": 386,
+        "mean_diff": -0.3756476683937824
+      },
+      "mcnemar": {
+        "n10": 25,
+        "n01": 170,
+        "n_discordant": 195,
+        "p_value": 1.0726196948008011e-27
+      }
+    },
+    "tie_band_pts": 3.0
+  },
+  "protocol": {
+    "checkpoint": "results/checkpoints/exp1b-bottleneck-v2/best",
+    "cohort_file": "results/exp0_v2_cohort.json",
+    "cohort_sha256": "abd19b757d3a1fdde48fdde5a172865d8a18ce20c79ddcc1ec7824ab6606c9ac",
+    "seed": 42,
+    "records_file": "results/exp2_records.jsonl",
+    "metric": "MCQ (gating); fact retrieval deferred"
+  }
+}
