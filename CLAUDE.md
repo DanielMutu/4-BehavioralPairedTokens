@@ -329,7 +329,8 @@ progetto: **`proxy-an`** oppure crediti OpenRouter sufficienti; e verificare que
   - [x] **Ri-pin criterio gating Exp 2** (2026-07-15, pre-registrato a risultati non visti): coorte = tutti i 541 MCQ v2 per example_id; primario = batte la baseline Exp 0 v2 con McNemar p<0.05; secondario = pareggio entro ±3 pt (bootstrap CI); numero separato obbligatorio per CNN/DailyMail out-of-style (n=386); 8 condizioni incluso **anchor-only recall** (controllo relay). Vedi decisions.md
   - [ ] Exp 0 v2 (test completo, per-example records, bootstrap/McNemar)
   - [x] **Exp 1b conservativo → PASS** (2026-07-16): WikiText ppl **+0.24%** (v0: +24.7%), HellaSwag −0.4 pt, MMLU +1.0 pt su 500 campioni, soglie invariate — il training col bottleneck non degrada il modello. Checkpoint: `exp1b-bottleneck-v2/best`. Vedi decisions.md
-- [ ] **Exp 0 v2 + Exp 2 — SBLOCCATI** ← PROSSIMO PASSO (baseline sull'intera coorte 541, poi le 8+2 condizioni pre-registrate)
+- [x] **Exp 0 v2 — COMPLETATO** (2026-07-16): baseline `mcq_from_summary` **0.656** [0.616, 0.697] sui 541; CNN out-of-style **0.593**, sintetici 0.812; full context 0.808 (McNemar p=1.7e-13 — l'effetto bigino v0 era rumore da n=50). Fact survival nei riassunti CNN: 5.9%. Vedi decisions.md
+- [ ] **Exp 2 — IN CORSO** (2026-07-16: 8 condizioni gating + 2 diagnostiche sul checkpoint exp1b, coorte appaiata, verdetto McNemar vs 0.656)
 - [ ] Exp 3 — probing hidden states **con tutti i controlli**
 - [ ] Dataset Tipo C + Exp 4 — composizione
 - [ ] Exp 5 — intervento causale (se Exp 3 dà risultati positivi)

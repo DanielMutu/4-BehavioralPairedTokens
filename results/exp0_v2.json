@@ -1,0 +1,114 @@
+{
+  "n": 541,
+  "mcq_from_summary": {
+    "mean": 0.6561922365988909,
+    "ci_low": 0.6155268022181146,
+    "ci_high": 0.6968576709796673,
+    "n": 541
+  },
+  "mcq_full_context": {
+    "mean": 0.8077634011090573,
+    "ci_low": 0.7744916820702403,
+    "ci_high": 0.8410351201478743,
+    "n": 541
+  },
+  "summary_fact_retrieval": {
+    "mean": 0.24526890238535343,
+    "ci_low": 0.21544758383945084,
+    "ci_high": 0.2764105272423202,
+    "n": 541
+  },
+  "mcnemar_summary_vs_full_context": {
+    "n10": 24,
+    "n01": 106,
+    "n_discordant": 130,
+    "p_value": 1.7154342149303739e-13
+  },
+  "by_source": {
+    "cnn_dailymail": {
+      "n": 386,
+      "mcq_from_summary": 0.5932642487046632,
+      "mcq_full_context": 0.8082901554404145
+    },
+    "handwritten": {
+      "n": 6,
+      "mcq_from_summary": 0.8333333333333334,
+      "mcq_full_context": 0.6666666666666666
+    },
+    "synthetic": {
+      "n": 149,
+      "mcq_from_summary": 0.8120805369127517,
+      "mcq_full_context": 0.8120805369127517
+    }
+  },
+  "by_distance": {
+    "0": {
+      "n": 485,
+      "mcq_from_summary": 0.6412371134020619,
+      "mcq_full_context": 0.8061855670103093
+    },
+    "10": {
+      "n": 11,
+      "mcq_from_summary": 0.7272727272727273,
+      "mcq_full_context": 0.7272727272727273
+    },
+    "100": {
+      "n": 13,
+      "mcq_from_summary": 0.8461538461538461,
+      "mcq_full_context": 0.9230769230769231
+    },
+    "20": {
+      "n": 14,
+      "mcq_from_summary": 0.7142857142857143,
+      "mcq_full_context": 0.7142857142857143
+    },
+    "25": {
+      "n": 1,
+      "mcq_from_summary": 1.0,
+      "mcq_full_context": 1.0
+    },
+    "3": {
+      "n": 10,
+      "mcq_from_summary": 0.8,
+      "mcq_full_context": 1.0
+    },
+    "30": {
+      "n": 1,
+      "mcq_from_summary": 1.0,
+      "mcq_full_context": 0.0
+    },
+    "50": {
+      "n": 6,
+      "mcq_from_summary": 0.8333333333333334,
+      "mcq_full_context": 0.8333333333333334
+    }
+  },
+  "by_type": {
+    "A": {
+      "n": 439,
+      "mcq_from_summary": 0.621867881548975,
+      "mcq_full_context": 0.806378132118451
+    },
+    "B": {
+      "n": 56,
+      "mcq_from_summary": 0.7857142857142857,
+      "mcq_full_context": 0.8214285714285714
+    },
+    "C": {
+      "n": 46,
+      "mcq_from_summary": 0.8260869565217391,
+      "mcq_full_context": 0.8043478260869565
+    }
+  },
+  "chance_level": 0.25,
+  "protocol": {
+    "model": "Qwen/Qwen2.5-0.5B",
+    "checkpoint": "base",
+    "attention_mode": "full_context (prompt baseline, by protocol)",
+    "max_new_tokens": 160,
+    "cohort_file": "results/exp0_v2_cohort.json",
+    "dataset_sha256": "abd19b757d3a1fdde48fdde5a172865d8a18ce20c79ddcc1ec7824ab6606c9ac",
+    "records_file": "results/exp0_v2_records.jsonl",
+    "seed": 42
+  }
+}

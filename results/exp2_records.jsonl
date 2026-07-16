@@ -1,0 +1,1 @@
+{"example_id": "741f2494fd520f6d", "source": "cnn_dailymail", "type": "A", "distance": 0, "answer_idx": 3, "condition": "token_unmasked", "pick": 3, "correct": true}

@@ -756,6 +756,39 @@ pre-riallineamento e due spunti nuovi accolti.
   (baseline sull'intera coorte pre-registrata di 541 MCQ, prediction record
   per esempio), poi Exp 2 con 8 condizioni gating + 2 diagnostiche.
 
+## 2026-07-16 — Exp 0 v2 completato: la baseline è misurata, l'effetto bigino è morto
+
+- **Run**: intera coorte pre-registrata (541 MCQ, ~8h50 CPU), modello base,
+  protocollo v0 invariato. Record per esempio in
+  `results/exp0_v2_records.jsonl`, coorte congelata in
+  `results/exp0_v2_cohort.json`, aggregati in `results/exp0_v2.json`.
+- **Risultati aggregati** (bootstrap CI 95%):
+  `mcq_from_summary` **0.656** [0.616, 0.697];
+  `mcq_full_context` **0.808** [0.774, 0.841];
+  `summary_fact_retrieval` 0.245 [0.215, 0.276].
+  McNemar summary vs full: n01=106 vs n10=24, **p=1.7e-13** — il contesto
+  pieno batte il riassunto in modo schiacciante.
+- **Per partizione** (obbligo pre-registrato):
+  CNN/DailyMail (n=386): summary **0.593**, full 0.808;
+  sintetici (n=149): summary 0.812 = full 0.812;
+  handwritten (n=6): 0.833/0.667 (n troppo piccolo per claim).
+- **L'effetto bigino del v0 è morto.** Il v0 (n=50, quasi solo sintetici)
+  aveva trovato summary 0.82 > full 0.74; sulla coorte vera il rapporto si
+  ribalta (aggregato) o si annulla (sintetici). Era rumore da campione
+  piccolo + composizione. Lezione registrata: mai fissare narrazioni su
+  n=50.
+- **Il riassunto è un compressore pessimo su testo reale**: sui CNN
+  sopravvive in media il **5.9%** dei fatti verificabili (82% dei riassunti
+  ne conserva ZERO); quando i fatti sopravvivono l'MCQ risale a ~0.80.
+  Il collo di bottiglia è la sommarizzazione, non la lettura.
+- **Asticella ufficiale di Exp 2** (dal criterio pre-registrato, ora con i
+  numeri): battere/pareggiare summary **0.656** aggregato sui 541 appaiati
+  (McNemar), con numero separato vs **0.593** sulla partizione CNN.
+  Upper bound di riferimento: full context 0.808.
+- **Decisione**: lanciato Exp 2 (8 condizioni gating + 2 diagnostiche,
+  checkpoint `exp1b-bottleneck-v2/best`, scoring MCQ batched, resumable).
+  Nessuna soglia toccata.
+
 ## Template per nuove decisioni
 
 ```

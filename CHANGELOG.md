@@ -152,6 +152,16 @@ questo file traccia **cosa è cambiato, file per file, e cosa è verificato**.
   Cautele registrate in decisions.md (delta downstream nel rumore; il PASS
   attesta stabilità, non recall su testo naturale).
 
+- **Exp 0 v2: baseline misurata** (2026-07-16, ~8h50 CPU sull'intera coorte
+  541): `mcq_from_summary` **0.656** [0.616, 0.697], `mcq_full_context`
+  **0.808**, fact retrieval nei riassunti 0.245 (CNN: **5.9%**, 82% dei
+  riassunti con zero fatti). L'effetto bigino v0 (summary > full su n=50)
+  era rumore: sulla coorte vera full batte summary con McNemar p=1.7e-13.
+  Partizioni: CNN 0.593/0.808, sintetici 0.812/0.812. Asticella Exp 2:
+  0.656 aggregato, 0.593 out-of-style. Record per esempio + coorte
+  congelata versionati. **Exp 2 lanciato** (8+2 condizioni, checkpoint
+  exp1b). Dettagli: decisions.md 2026-07-16.
+
 ### Known issues / debito aperto
 
 1. ~~pytest mai rilanciato dopo l'ultimo fix → stato suite ignoto (gate 0)~~
